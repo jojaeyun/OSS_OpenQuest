@@ -6,16 +6,18 @@ WIDTH, HEIGHT = 800, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("미니게임 선택")
 
-FONT = pygame.font.Font(None, 50)
+FONT_PATH = "C:/Windows/Fonts/malgun.ttf"
+FONT = pygame.font.Font(FONT_PATH, 40)
+
 clock = pygame.time.Clock()
 
 menu_items = [
-    "✊✋✌ 가위바위보",
-    "🌀 미로 찾기",
-    "🔤 단어 맞추기",
-    "🧱 벽돌깨기",
-    "🔢 숫자 맞추기",
-    "❌ 종료"
+    "가위바위보",
+    "미로 찾기",
+    "단어 맞추기",
+    "벽돌깨기",
+    "숫자 맞추기",
+    "종료"
 ]
 selected = 0
 
@@ -34,11 +36,11 @@ def draw_menu():
             pygame.draw.rect(screen, (80, 200, 120), (x-20, y-10, item.get_width()+40, item.get_height()+20), 3)
 
 def run_selected(idx):
-    if idx == 0: print("✊✋✌ 가위바위보 실행")
-    elif idx == 1: print("🌀 미로 찾기 실행")
-    elif idx == 2: print("🔤 단어 맞추기 실행")
-    elif idx == 3: print("🧱 벽돌깨기 실행")
-    elif idx == 4: print("🔢 숫자 맞추기 실행")
+    if idx == 0: print("가위바위보 실행")
+    elif idx == 1: print("미로 찾기 실행")
+    elif idx == 2: print("단어 맞추기 실행")
+    elif idx == 3: print("벽돌깨기 실행")
+    elif idx == 4: print("숫자 맞추기 실행")
     elif idx == 5: 
         pygame.quit()
         sys.exit()
