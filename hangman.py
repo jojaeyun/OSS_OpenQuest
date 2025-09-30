@@ -65,7 +65,6 @@ def main():
         count += 1
         time.sleep(1)
 
-        # 아래 코드 불완전함
         if (t-count) < alp_num: # 맞춰야 할 알파벳이 남은 기회보다 많아지면 조기종료
             print("\n더이상 정답을 맞출 수 없어 조기종료합니다")
             break
