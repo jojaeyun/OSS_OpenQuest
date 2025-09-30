@@ -42,8 +42,10 @@ buttons = [
     Button(500, 400, 150, 100, "보")
 ]
 
-# 결과 메시지
+# 결과 메시지 & 점수
 result_text = ""
+player_score = 0
+computer_score = 0
 
 # 메인 루프
 running = True
@@ -62,12 +64,16 @@ while running:
 
                     if player_choice == computer_choice:
                         result_text = f"비겼습니다! (컴퓨터: {computer_choice})"
+                        player_score += 1
+                        computer_score += 1
                     elif (player_choice == "가위" and computer_choice == "보") or \
                          (player_choice == "바위" and computer_choice == "가위") or \
                          (player_choice == "보" and computer_choice == "바위"):
                         result_text = f"이겼습니다! (컴퓨터: {computer_choice})"
+                        player_score += 1
                     else:
                         result_text = f"졌습니다! (컴퓨터: {computer_choice})"
+                        computer_score += 1
 
     # 버튼 그리기
     for btn in buttons:
@@ -77,6 +83,10 @@ while running:
     if result_text:
         result_surface = FONT.render(result_text, True, BLACK)
         screen.blit(result_surface, (200, 200))
+
+    # 점수 표시
+    score_text = FONT.render(f"플레이어: {player_score}   컴퓨터: {computer_score}", True, BLACK)
+    screen.blit(score_text, (200, 100))
 
     pygame.display.flip()
 
