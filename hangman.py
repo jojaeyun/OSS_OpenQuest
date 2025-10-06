@@ -1,79 +1,113 @@
-import sys
-import random as r
-import time
+import pygame
+import random
 import hangman_words
 
-def c_alps(word):
-    letters = {ch for ch in word}
-    return len(letters)
+pygame.init()
+WIDTH, HEIGHT = 800, 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("행맨 게임")
+
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (200, 0, 0)
+GREEN = (0, 150, 0)
+
+FONT_PATH = "PressStart2P-Regular.ttf"   # 프로젝트 폴더/fonts/arcade.ttf
+
+font_title = pygame.font.Font(FONT_PATH, 60)
+font_wrong = pygame.font.Font(FONT_PATH, 18)
+font_word = pygame.font.Font(FONT_PATH, 25)
+font_use = pygame.font.Font(FONT_PATH, 20)
+font_success = pygame.font.Font(FONT_PATH, 40)
+font_fail = pygame.font.Font(FONT_PATH, 50)
+font_fail_word = pygame.font.Font(FONT_PATH, 25)
+
+def draw_hangman(stage):
+    if stage >= 0:
+        pygame.draw.line(screen, (255, 255, 255), (150, 500), (150, 150), 5)
+        pygame.draw.line(screen, (255, 255, 255), (150, 150), (350, 150), 5)
+        pygame.draw.line(screen, (255, 255, 255), (350, 150), (350, 200), 5)
+    if stage >= 1:
+        pygame.draw.circle(screen, (255, 255, 255), (350, 230), 30, 4)
+    if stage >= 2:
+        pygame.draw.line(screen, (255, 255, 255), (350, 260), (350, 350), 4)
+    if stage >= 3:
+        pygame.draw.line(screen, (255, 255, 255), (350, 280), (310, 320), 4)
+    if stage >= 4:
+        pygame.draw.line(screen, (255, 255, 255), (350, 280), (390, 320), 4)
+    if stage >= 5:
+        pygame.draw.line(screen, (255, 255, 255), (350, 350), (320, 420), 4)
+    if stage >= 6:
+        pygame.draw.line(screen, (255, 255, 255), (350, 350), (380, 420), 4)
+
+def draw_word(word, guessed):
+    display_text = " ".join([ch if ch in guessed else "_" for ch in word])
+    text = font_word.render(display_text, True, WHITE)
+    rect = text.get_rect(center=(580, 480))
+    screen.blit(text, rect)
+
+def draw_guessed(guessed):
+    text = font_use.render("Using: " + " ".join(sorted(guessed)), True, (100, 100, 100))
+    screen.blit(text, (60, 530))
 
 def main():
-    inplst = []
-    c_word = r.choice(hangman_words.word_list)    # 랜덤 선택
-    alp_num = c_alps(c_word)    # 해당 단어에 쓰인 알파벳 종류의 개수
-    count = 0
-    t = 10   # 가능한 횟수
-    print("기회는 총 {}번\n".format(t))
-    time.sleep(1) # 게임 실행 속도를 조절하기 위해 사용
+    running = True
+    clock = pygame.time.Clock()
+    word = random.choice(hangman_words.word_list)
+    guessed = []    # 입력한 알파벳들
+    wrong = 0
+    MAX_TRIES = 6
+    win = False
+    lose = False
 
-    while count <= t:
-        print("\n단어: ",end="")
-        s = True
-        for i in c_word:
-            if i in inplst:
-                print(i,end=" ")
-            else:
-                print("_",end=" ")
-                s = False
-        time.sleep(1)
+    while running:
+        screen.fill(BLACK)
 
-        if s == True: # 남은 기회가 있는데 알파벳을 전부 맞추었으면 성공
-                print("\n정답입니다")
-                break
+        title = font_title.render("HANGMAN", True, WHITE)
+        rect = title.get_rect(center=(WIDTH//2, 70))
+        screen.blit(title, rect)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.KEYDOWN and not win and not lose:
+                if event.unicode.isalpha():
+                    letter = event.unicode.lower()
+                    if letter not in guessed:
+                        guessed.append(letter)
+                        if letter not in word:
+                            wrong += 1
+                        # 남은 알파벳이 없으면 성공
+                        if all(ch in guessed for ch in word):
+                            win = True
+                        # 기회 소진 시 실패
+                        elif wrong >= MAX_TRIES:
+                            lose = True
+
+        # 그림, 단어, 입력 표시
+        draw_hangman(wrong)
+        draw_word(word, guessed)
+        draw_guessed(guessed)
+
+        info_text = font_wrong.render(
+            f"Wrong Count: {wrong} / 6", True, (100, 100, 100)
+        )
+        screen.blit(info_text, (420, 150))
+
+        if(win==True):
+            success = font_success.render("Succeed!", True, GREEN)
+            rect = success.get_rect(center=(580, 300))
+            screen.blit(success, rect)
         
-        if t-count != 0:
-            print("\n\n남은 기회: {}번".format(t-count))
-        else: # 기회 소진시 
-            if s == True: # 기회를 다 썼는데 알파벳도 다 맞췄으면 축하해주고 탈출
-                print("\n정답입니다")
-            break
-       
-        time.sleep(1)
-        # 알파벳 입력 & 잘못된 입력을 받았을 경우
-        print("\n알파벳 입력: ",end="")
-        alp = sys.stdin.readline().rstrip()
-        if not alp.isalpha() or not alp.isascii():
-            print("\nError: 알파벳 입력되지 않음\n")
-            time.sleep(0.5)
-            continue
-        elif len(alp) > 1:
-            print("\nError: 두 개 이상의 입력 확인\n")
-            time.sleep(0.5)
-            continue
-        
-        alp = alp.lower()
-        if alp not in c_word:
-            print("\n이 알파벳은 존재하지 않습니다\n")
-        else:
-            if alp not in inplst:
-                print("\n이 알파벳은 존재합니다\n") 
-                inplst.append(alp)
-                alp_num -= 1
-            else: # 이미 맞춘 알파벳을 다시 입력한다면
-                print("\n이미 맞춘 알파벳입니다\n")
-                continue
-        count += 1
-        time.sleep(1)
+        if(lose==True):
+            fail = font_fail.render("Fail!", True, RED)
+            screen.blit(fail, (470, 250))
+            fail_word = font_fail_word.render(f"word: {word}", True, RED)
+            rect = fail_word.get_rect(center=(580, 350))
+            screen.blit(fail_word, rect)
 
-        if (t-count) < alp_num: # 맞춰야 할 알파벳이 남은 기회보다 많아지면 조기종료
-            print("\n더이상 정답을 맞출 수 없어 조기종료합니다")
-            break
+        pygame.display.flip()
+        clock.tick(30)
+            
+    pygame.quit()
 
-        if alp_num == 0: # 알파벳을 다 맞춰 더이상 맞출 알파벳이 없으면 아래 문장은 불필요하다.
-            continue
-    if s == False:
-        print("\n정답: {}".format(c_word))
-        print("\n아쉽게도 성공하지 못하였습니다\n")
- 
- # 실행
 main()
