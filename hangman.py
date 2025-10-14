@@ -1,5 +1,6 @@
 import pygame
 import random
+import math
 import hangman_words
 
 pygame.init()
@@ -21,7 +22,9 @@ font_use = pygame.font.Font(FONT_PATH, 20)
 font_success = pygame.font.Font(FONT_PATH, 40)
 font_fail = pygame.font.Font(FONT_PATH, 50)
 font_fail_word = pygame.font.Font(FONT_PATH, 25)
+font_restart = pygame.font.Font(FONT_PATH, 15)
 
+# 행맨 그림 그리는 함수
 def draw_hangman(stage):
     if stage >= 0:
         pygame.draw.line(screen, WHITE, (70, 500), (210, 500), 5)
@@ -41,17 +44,22 @@ def draw_hangman(stage):
     if stage >= 6:
         pygame.draw.line(screen, WHITE, (270, 350), (300, 420), 4)
 
+# 단어의 완성상태 표시 함수
 def draw_word(word, guessed):
     display_text = " ".join([ch if ch in guessed else "_" for ch in word])
     text = font_word.render(display_text, True, WHITE)
     rect = text.get_rect(center=(580, 480))
     screen.blit(text, rect)
 
+# 사용한 알파벳들 표시 함수
 def draw_guessed(guessed):
     text = font_use.render("Using: " + " ".join(sorted(guessed)), True, (100, 100, 100))
     screen.blit(text, (60, 530))
 
-def main():
+# 게임 초기화 함수
+def reset_game():
+    global running, clock, word, guessed, wrong, MAX_TRIES, win, lose
+
     running = True
     clock = pygame.time.Clock()
     word = random.choice(hangman_words.word_list)
@@ -61,54 +69,69 @@ def main():
     win = False
     lose = False
 
-    while running:
-        screen.fill(BLACK)
+reset_game() # 최초 초기화 실행
 
-        title = font_title.render("HANGMAN", True, WHITE)
-        rect = title.get_rect(center=(WIDTH//2, 70))
-        screen.blit(title, rect)
-        for event in pygame.event.get():
+while running:
+    screen.fill(BLACK)
+
+    if (win==True or lose==True):   # 게임이 끝난 경우
+        time = pygame.time.get_ticks()
+        brightness = int(((math.sin(time * 0.005) + 1)/3 + 1/3) * 255) # sin 파형으로 깜빡거리도록 함
+        blink = (brightness, brightness, brightness)
+        restart = font_restart.render("Press ENTER to Restart", True, blink)
+        rect = restart.get_rect(center=(580, 400))
+        screen.blit(restart, rect)
+
+        for event in pygame.event.get():    # 키보드 입력
             if event.type == pygame.QUIT:
                 running = False
-            elif event.type == pygame.KEYDOWN and not win and not lose:
-                if event.unicode.isalpha():
-                    letter = event.unicode.lower()
-                    if letter not in guessed:
-                        guessed.append(letter)
-                        if letter not in word:
-                            wrong += 1
-                        # 남은 알파벳이 없으면 성공
-                        if all(ch in guessed for ch in word):
-                            win = True
-                        # 기회 소진 시 실패
-                        elif wrong >= MAX_TRIES:
-                            lose = True
 
-        # 그림, 단어, 입력 표시
-        draw_hangman(wrong)
-        draw_word(word, guessed)
-        draw_guessed(guessed)
+            # 엔터키로 재시작
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                reset_game()
 
-        info_text = font_wrong.render(
-            f"Wrong Count: {wrong} / 6", True, (100, 100, 100)
-        )
-        screen.blit(info_text, (420, 150))
+    title = font_title.render("HANGMAN", True, WHITE)
+    rect = title.get_rect(center=(WIDTH//2, 70))
+    screen.blit(title, rect)
 
-        if(win==True):
-            success = font_success.render("Succeed!", True, GREEN)
-            rect = success.get_rect(center=(580, 300))
-            screen.blit(success, rect)
+    for event in pygame.event.get():    # 키보드 입력
+        if event.type == pygame.QUIT:
+            running = False
+        elif event.type == pygame.KEYDOWN and not win and not lose:
+            if event.unicode.isalpha():
+                letter = event.unicode.lower()
+                if letter not in guessed:
+                    guessed.append(letter)
+                    if letter not in word:
+                        wrong += 1
+                    # 남은 알파벳이 없으면 성공
+                    if all(ch in guessed for ch in word):
+                        win = True
+                    # 기회 소진 시 실패
+                    elif wrong >= MAX_TRIES:
+                        lose = True
+
+    # 그림, 단어, 입력 표시
+    draw_hangman(wrong)
+    draw_word(word, guessed)
+    draw_guessed(guessed)
+
+    info_text = font_wrong.render(f"Wrong Count: {wrong} / 6", True, (100, 100, 100))
+    screen.blit(info_text, (420, 150))
+
+    if(win==True): # 성공한 경우
+        success = font_success.render("Succeed!", True, GREEN)
+        rect = success.get_rect(center=(580, 300))
+        screen.blit(success, rect)
         
-        if(lose==True):
-            fail = font_fail.render("Fail!", True, RED)
-            screen.blit(fail, (470, 250))
-            fail_word = font_fail_word.render(f"word: {word}", True, RED)
-            rect = fail_word.get_rect(center=(580, 350))
-            screen.blit(fail_word, rect)
+    if(lose==True): # 실패한 경우
+        fail = font_fail.render("Fail!", True, RED)
+        screen.blit(fail, (470, 250))
+        fail_word = font_fail_word.render(f"word: {word}", True, RED)
+        rect = fail_word.get_rect(center=(580, 350))
+        screen.blit(fail_word, rect)
 
-        pygame.display.flip()
-        clock.tick(30)
+    pygame.display.flip()
+    clock.tick(30)
             
-    pygame.quit()
-
-main()
+pygame.quit()
