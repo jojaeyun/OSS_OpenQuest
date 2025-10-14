@@ -24,21 +24,21 @@ font_fail_word = pygame.font.Font(FONT_PATH, 25)
 
 def draw_hangman(stage):
     if stage >= 0:
-        pygame.draw.line(screen, (255, 255, 255), (150, 500), (150, 150), 5)
-        pygame.draw.line(screen, (255, 255, 255), (150, 150), (350, 150), 5)
-        pygame.draw.line(screen, (255, 255, 255), (350, 150), (350, 200), 5)
+        pygame.draw.line(screen, WHITE, (70, 500), (70, 150), 5)
+        pygame.draw.line(screen, WHITE, (70, 150), (270, 150), 5)
+        pygame.draw.line(screen, WHITE, (270, 150), (270, 200), 5)
     if stage >= 1:
-        pygame.draw.circle(screen, (255, 255, 255), (350, 230), 30, 4)
+        pygame.draw.circle(screen, WHITE, (270, 230), 30, 4)
     if stage >= 2:
-        pygame.draw.line(screen, (255, 255, 255), (350, 260), (350, 350), 4)
+        pygame.draw.line(screen, WHITE, (270, 260), (270, 350), 4)
     if stage >= 3:
-        pygame.draw.line(screen, (255, 255, 255), (350, 280), (310, 320), 4)
+        pygame.draw.line(screen, WHITE, (270, 260), (230, 320), 4)
     if stage >= 4:
-        pygame.draw.line(screen, (255, 255, 255), (350, 280), (390, 320), 4)
+        pygame.draw.line(screen, WHITE, (270, 260), (310, 320), 4)
     if stage >= 5:
-        pygame.draw.line(screen, (255, 255, 255), (350, 350), (320, 420), 4)
+        pygame.draw.line(screen, WHITE, (270, 350), (240, 420), 4)
     if stage >= 6:
-        pygame.draw.line(screen, (255, 255, 255), (350, 350), (380, 420), 4)
+        pygame.draw.line(screen, WHITE, (270, 350), (300, 420), 4)
 
 def draw_word(word, guessed):
     display_text = " ".join([ch if ch in guessed else "_" for ch in word])
