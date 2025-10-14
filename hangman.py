@@ -24,8 +24,9 @@ font_fail_word = pygame.font.Font(FONT_PATH, 25)
 
 def draw_hangman(stage):
     if stage >= 0:
-        pygame.draw.line(screen, WHITE, (70, 500), (70, 150), 5)
-        pygame.draw.line(screen, WHITE, (70, 150), (270, 150), 5)
+        pygame.draw.line(screen, WHITE, (70, 500), (210, 500), 5)
+        pygame.draw.line(screen, WHITE, (140, 500), (140, 150), 5)
+        pygame.draw.line(screen, WHITE, (140, 150), (270, 150), 5)
         pygame.draw.line(screen, WHITE, (270, 150), (270, 200), 5)
     if stage >= 1:
         pygame.draw.circle(screen, WHITE, (270, 230), 30, 4)
