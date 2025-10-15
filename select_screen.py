@@ -10,8 +10,10 @@ WIDTH, HEIGHT = 800, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("미니게임 선택")
 
-FONT_PATH = "C:/Windows/Fonts/malgun.ttf"
-FONT = pygame.font.Font(FONT_PATH, 40)
+# 🎮 아케이드 폰트 적용
+FONT_PATH = "PressStart2P-Regular.ttf"   # 프로젝트 폴더/fonts/arcade.ttf
+TITLE_FONT = pygame.font.Font(FONT_PATH, 70)  # 타이틀 전용 폰트
+MENU_FONT = pygame.font.Font(FONT_PATH, 30)   # 메뉴 전용 폰트
 
 clock = pygame.time.Clock()
 
@@ -19,38 +21,31 @@ clock = pygame.time.Clock()
 select_sound = pygame.mixer.Sound("ui-sounds-pack.mp3")
 
 menu_items = [
-    "가위바위보",
-    "미로 찾기",
-    "단어 맞추기",
-    "벽돌깨기",
-    "숫자 맞추기",
-    "종료"
+    "Rock-Paper-Scissors",
+    "Maze game",
+    "Hangman",
+    "Break Out!",
+    "Geussing the numbers",
+    "Quit"
 ]
 selected = 0
 
 def draw_menu():
-    screen.fill((30, 30, 50))
-    title = FONT.render("미니게임을 선택하세요", True, (255, 255, 200))
+    screen.fill((0, 0, 0))
+    # 타이틀
+    title = TITLE_FONT.render("PLAYGROUND", True, (255, 255, 0))
     screen.blit(title, (WIDTH//2 - title.get_width()//2, 80))
 
+    # 메뉴 항목
     for i, text in enumerate(menu_items):
         color = (255, 255, 255) if i == selected else (180, 180, 180)
-        item = FONT.render(text, True, color)
+        item = MENU_FONT.render(text, True, color)
         x = WIDTH//2 - item.get_width()//2
         y = 200 + i * 60
         screen.blit(item, (x, y))
         if i == selected:
-            pygame.draw.rect(screen, (80, 200, 120), (x-20, y-10, item.get_width()+40, item.get_height()+20), 3)
-
-def run_selected(idx):
-    if idx == 0: print("가위바위보 실행")
-    elif idx == 1: print("미로 찾기 실행")
-    elif idx == 2: print("단어 맞추기 실행")
-    elif idx == 3: print("벽돌깨기 실행")
-    elif idx == 4: print("숫자 맞추기 실행")
-    elif idx == 5: 
-        pygame.quit()
-        sys.exit()
+            pygame.draw.rect(screen, (80, 200, 120), 
+                             (x-20, y-10, item.get_width()+40, item.get_height()+20), 3)
 
 def run_selected(idx):
     branches = [
@@ -81,14 +76,14 @@ while True:
         if event.type == pygame.QUIT:  # 창 닫기
             pygame.quit()
             sys.exit()
-        elif event.type == pygame.KEYDOWN:  # 키보드가 눌림
-            if event.key == pygame.K_DOWN or event.key == pygame.K_s:  # 아래방향키 or s
+        elif event.type == pygame.KEYDOWN:  # 키보드 입력
+            if event.key == pygame.K_DOWN or event.key == pygame.K_s:
                 selected = (selected + 1) % len(menu_items)
-                select_sound.play()  # 메뉴 이동 효과음
-            elif event.key == pygame.K_UP or event.key == pygame.K_w:  # 위방향키 or w
+                select_sound.play()
+            elif event.key == pygame.K_UP or event.key == pygame.K_w:
                 selected = (selected - 1) % len(menu_items)
-                select_sound.play()  # 메뉴 이동 효과음
-            elif event.key == pygame.K_RETURN:  # 엔터
+                select_sound.play()
+            elif event.key == pygame.K_RETURN:
                 run_selected(selected)
 
     draw_menu()
