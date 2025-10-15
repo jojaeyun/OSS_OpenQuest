@@ -123,9 +123,8 @@ def run_pygame():
                 pygame.draw.rect(screen, color, (x,y,TILE_SIZE,TILE_SIZE))
         # 탈출구
         pygame.draw.rect(screen, EXIT_COLOR, (exit_col*TILE_SIZE, exit_row*TILE_SIZE, TILE_SIZE, TILE_SIZE))
-        # 자동 경로 표시
-        for r, c in path_cells:
-            pygame.draw.rect(screen, PATH_HIGHLIGHT, (c*TILE_SIZE, r*TILE_SIZE, TILE_SIZE, TILE_SIZE))
+     
+      
         # 플레이어
         pygame.draw.rect(screen, PLAYER_COLOR, (player_x, player_y, TILE_SIZE, TILE_SIZE))
 
