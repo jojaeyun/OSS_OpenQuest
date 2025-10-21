@@ -1,6 +1,7 @@
 import pygame
 import sys
 import random
+import math
 
 # 초기화
 pygame.init()
@@ -122,7 +123,10 @@ while running:
         rect = result.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 80))
         screen.blit(result, rect)
 
-        restart = font_small.render("Press ENTER to Restart", True, WHITE)
+        time = pygame.time.get_ticks()
+        brightness = int(((math.sin(time * 0.005) + 1)/3 + 1/3) * 255) # sin 파형으로 깜빡거리도록 함
+        blink = (brightness, brightness, brightness)
+        restart = font_small.render("Press ENTER to Restart", True, blink)
         rect2 = restart.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 80))
         screen.blit(restart, rect2)
 
