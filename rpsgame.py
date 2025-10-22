@@ -154,11 +154,11 @@ while running:
         if remaining_time <= 0 and not game_over:
             game_over = True
             if player_score > computer_score:
-                result_text = "🏆 시간 종료! 플레이어 승리!"
+                result_text = "시간 종료! \n플레이어 승리!"
             elif computer_score > player_score:
-                result_text = "🤖 시간 종료! 컴퓨터 승리!"
+                result_text = "시간 종료! \n컴퓨터 승리!"
             else:
-                result_text = "🤝 시간 종료! 무승부!"
+                result_text = "시간 종료!\n무승부!"
             computer_result_text = "" 
     else:
         just_reset = False
@@ -187,15 +187,18 @@ while running:
         for btn in buttons:
             btn.draw(screen, mouse_pos)
     else:
-
         overlay = pygame.Surface((WIDTH, HEIGHT))
         overlay.set_alpha(220)
         overlay.fill((DARK_GRAY))
         screen.blit(overlay, (0, 0))
-
-        result_surface = TITLE_FONT.render(result_text, True, WHITE) 
-        result_rect = result_surface.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 60))
-        screen.blit(result_surface, result_rect)
+        
+        # 여러 줄 출력 (줄바꿈 처리)
+        lines = result_text.split("\n")
+        for i, line in enumerate(lines):
+            result_surface = TITLE_FONT.render(line, True, WHITE)
+            # 각 줄을 세로로 조금씩 간격 두고 출력
+            result_rect = result_surface.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 80 + i * 70))
+            screen.blit(result_surface, result_rect)
 
         retry_button.draw(screen, mouse_pos)
 
