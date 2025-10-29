@@ -57,7 +57,7 @@ def run_pygame():
     SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
     TILE_SIZE = min(SCREEN_WIDTH // COLS, SCREEN_HEIGHT // ROWS)
     screen = pygame.display.set_mode((COLS * TILE_SIZE, ROWS * TILE_SIZE))
-    pygame.display.set_caption("랜덤 미로 게임")
+    pygame.display.set_caption("랜덤 미로 게임 - 난이도 시스템")
 
     WALL_COLOR = (50, 50, 150)
     PATH_COLOR = (200, 200, 200)
@@ -68,37 +68,82 @@ def run_pygame():
 
     clock = pygame.time.Clock()
 
-    # 플레이어 초기 위치
+    # ---------------- 난이도 선택 ----------------
+    font = pygame.font.SysFont(None, 60)
+    choosing = True
+    difficulty = None
+
+    while choosing:
+        screen.fill((0, 0, 0))
+        title = font.render("Difficulty", True, (255, 255, 255))
+        easy = font.render("[E] Easy", True, (100, 255, 100))
+        normal = font.render("[N] Normal", True, (255, 255, 100))
+        hard = font.render("[H] Hard", True, (255, 100, 100))
+        screen.blit(title, (SCREEN_WIDTH//2 - title.get_width()//2, 150))
+        screen.blit(easy, (SCREEN_WIDTH//2 - easy.get_width()//2, 300))
+        screen.blit(normal, (SCREEN_WIDTH//2 - normal.get_width()//2, 380))
+        screen.blit(hard, (SCREEN_WIDTH//2 - hard.get_width()//2, 460))
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit(); sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_e:
+                    difficulty = "easy"; choosing = False
+                elif event.key == pygame.K_n:
+                    difficulty = "normal"; choosing = False
+                elif event.key == pygame.K_h:
+                    difficulty = "hard"; choosing = False
+
+    # 난이도별 설정
+    if difficulty == "easy":
+        enemy_count = 1
+        item_count = 10
+        enemy_speed = 2
+    elif difficulty == "normal":
+        enemy_count = 2
+        item_count = 7
+        enemy_speed = 2.5
+    else:  # hard
+        enemy_count = 3
+        item_count = 5
+        enemy_speed = 3
+
+    # ---------------- 게임 초기화 ----------------
     player_row, player_col = 1, 1
     player_x, player_y = player_col * TILE_SIZE, player_row * TILE_SIZE
     player_speed = 4
 
-    # 출구
     exit_row, exit_col = ROWS - 2, COLS - 2
     maze[exit_row][exit_col] = 0
 
-    # 적: 플레이어 반대쪽
-    enemy_row, enemy_col = ROWS - 2, COLS - 2
-    enemy_x, enemy_y = enemy_col * TILE_SIZE, enemy_row * TILE_SIZE
-    enemy_speed = 2
+    # 적들 생성
+    enemies = []
+    for _ in range(enemy_count):
+        while True:
+            r, c = random.randint(ROWS//2, ROWS - 2), random.randint(COLS//2, COLS - 2)
+            if maze[r][c] == 0:
+                enemies.append({
+                    "x": c * TILE_SIZE,
+                    "y": r * TILE_SIZE,
+                    "path": [],
+                    "disabled": False,
+                    "disable_timer": 0
+                })
+                break
 
     # 아이템 여러 개 배치
     items = []
-    for _ in range(10):
+    for _ in range(item_count):
         while True:
             r, c = random.randint(1, ROWS - 2), random.randint(1, COLS - 2)
             if maze[r][c] == 0 and (r, c) not in [(player_row, player_col), (exit_row, exit_col)]:
                 items.append((r, c))
                 break
 
-    # 적 무력화 관련
-    enemy_disabled = False
-    disable_timer = 0
     disable_duration = 180  # 3초
-
-    path_to_player = []
-    path_timer = 0  # BFS 업데이트 타이머
-
+    path_timer = 0
     running = True
     won = False
 
@@ -109,10 +154,11 @@ def run_pygame():
             return maze[row][col] == 0
         return False
 
+    # ---------------- 메인 루프 ----------------
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                pygame.quit(); sys.exit()
 
         keys = pygame.key.get_pressed()
         dx, dy = 0, 0
@@ -125,54 +171,56 @@ def run_pygame():
         new_x, new_y = player_x + dx, player_y + dy
         if can_move(new_x, player_y): player_x = new_x
         if can_move(player_x, new_y): player_y = new_y
-
         player_row, player_col = int(player_y // TILE_SIZE), int(player_x // TILE_SIZE)
 
-        # 아이템 획득 → 적 무력화
+        # 아이템 획득 → 모든 적 무력화
         for item in items[:]:
             if (player_row, player_col) == item:
                 items.remove(item)
-                enemy_disabled = True
-                disable_timer = disable_duration
+                for e in enemies:
+                    e["disabled"] = True
+                    e["disable_timer"] = disable_duration
 
         # 적 이동
-        if not enemy_disabled:
-            path_timer += 1
-            if path_timer % 20 == 0:  # 20프레임마다 BFS 갱신 (성능 절약)
-                path_to_player = find_path(maze, (int(enemy_y // TILE_SIZE), int(enemy_x // TILE_SIZE)),
-                                           (player_row, player_col))
+        path_timer += 1
+        for e in enemies:
+            if e["disabled"]:
+                e["disable_timer"] -= 1
+                if e["disable_timer"] <= 0:
+                    e["disabled"] = False
+                continue
 
-            if path_to_player:
-                next_cell = path_to_player[0]
+            if path_timer % 20 == 0:
+                e["path"] = find_path(
+                    maze,
+                    (int(e["y"] // TILE_SIZE), int(e["x"] // TILE_SIZE)),
+                    (player_row, player_col)
+                )
+
+            if e["path"]:
+                next_cell = e["path"][0]
                 next_x, next_y = next_cell[1] * TILE_SIZE, next_cell[0] * TILE_SIZE
-                dir_x = next_x - enemy_x
-                dir_y = next_y - enemy_y
+                dir_x = next_x - e["x"]
+                dir_y = next_y - e["y"]
                 dist = max(1, (dir_x ** 2 + dir_y ** 2) ** 0.5)
-                step_x = enemy_speed * dir_x / dist
-                step_y = enemy_speed * dir_y / dist
+                e["x"] += enemy_speed * dir_x / dist
+                e["y"] += enemy_speed * dir_y / dist
 
-                enemy_x += step_x
-                enemy_y += step_y
-
-                # 목표 칸 도착 시 다음 칸으로
-                if abs(enemy_x - next_x) < 2 and abs(enemy_y - next_y) < 2:
-                    path_to_player.pop(0)
-        else:
-            disable_timer -= 1
-            if disable_timer <= 0:
-                enemy_disabled = False
-
-        enemy_row, enemy_col = int(enemy_y // TILE_SIZE), int(enemy_x // TILE_SIZE)
+                if abs(e["x"] - next_x) < 2 and abs(e["y"] - next_y) < 2:
+                    e["path"].pop(0)
 
         # 충돌 판정
         if (player_row, player_col) == (exit_row, exit_col):
             won = True
             running = False
-        elif not enemy_disabled and abs(player_row - enemy_row) < 1 and abs(player_col - enemy_col) < 1:
-            won = False
-            running = False
 
-        # 화면 렌더링
+        for e in enemies:
+            enemy_row, enemy_col = int(e["y"] // TILE_SIZE), int(e["x"] // TILE_SIZE)
+            if not e["disabled"] and abs(player_row - enemy_row) < 1 and abs(player_col - enemy_col) < 1:
+                won = False
+                running = False
+
+        # ---------------- 화면 렌더링 ----------------
         screen.fill((0, 0, 0))
         for r in range(ROWS):
             for c in range(COLS):
@@ -187,8 +235,9 @@ def run_pygame():
         pygame.draw.rect(screen, EXIT_COLOR, (exit_col * TILE_SIZE, exit_row * TILE_SIZE, TILE_SIZE, TILE_SIZE))
 
         # 적
-        color = (150, 150, 150) if enemy_disabled else ENEMY_COLOR
-        pygame.draw.rect(screen, color, (enemy_x, enemy_y, TILE_SIZE, TILE_SIZE))
+        for e in enemies:
+            color = (150, 150, 150) if e["disabled"] else ENEMY_COLOR
+            pygame.draw.rect(screen, color, (e["x"], e["y"], TILE_SIZE, TILE_SIZE))
 
         # 플레이어
         pygame.draw.rect(screen, PLAYER_COLOR, (player_x, player_y, TILE_SIZE, TILE_SIZE))
@@ -196,9 +245,9 @@ def run_pygame():
         pygame.display.flip()
         clock.tick(60)
 
-    # 종료 화면
+    # ---------------- 종료 화면 ----------------
     font = pygame.font.SysFont(None, 72)
-    text = font.render("victory!" if won else "Failed!", True, (255, 255, 0) if won else (255, 50, 50))
+    text = font.render("Victory!" if won else "Failed!", True, (255, 255, 0) if won else (255, 50, 50))
     screen.fill((0, 0, 0))
     screen.blit(text, (SCREEN_WIDTH//2 - text.get_width()//2, SCREEN_HEIGHT//2 - text.get_height()//2))
     pygame.display.flip()
