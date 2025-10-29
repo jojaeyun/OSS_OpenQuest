@@ -51,13 +51,25 @@ def find_path(maze, start, end):
 def run_pygame():
     pygame.init()
 
+    # 🔹 폰트 설정
+    FONT_PATH = "PressStart2P-Regular.ttf"
+    try:
+        font_small = pygame.font.Font(FONT_PATH, 30)
+        font_medium = pygame.font.Font(FONT_PATH, 40)
+        font_large = pygame.font.Font(FONT_PATH, 60)
+    except FileNotFoundError:
+        print(f"[경고] 폰트 파일 '{FONT_PATH}'을(를) 찾을 수 없습니다. 기본 폰트를 사용합니다.")
+        font_small = pygame.font.SysFont(None, 30)
+        font_medium = pygame.font.SysFont(None, 40)
+        font_large = pygame.font.SysFont(None, 60)
+
     ROWS, COLS = 21, 31
     maze = generate_maze(ROWS, COLS)
 
     SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
     TILE_SIZE = min(SCREEN_WIDTH // COLS, SCREEN_HEIGHT // ROWS)
     screen = pygame.display.set_mode((COLS * TILE_SIZE, ROWS * TILE_SIZE))
-    pygame.display.set_caption("랜덤 미로 게임 - 난이도 시스템")
+    pygame.display.set_caption("랜덤 미로 게임")
 
     WALL_COLOR = (50, 50, 150)
     PATH_COLOR = (200, 200, 200)
@@ -69,16 +81,15 @@ def run_pygame():
     clock = pygame.time.Clock()
 
     # ---------------- 난이도 선택 ----------------
-    font = pygame.font.SysFont(None, 60)
     choosing = True
     difficulty = None
 
     while choosing:
         screen.fill((0, 0, 0))
-        title = font.render("Difficulty", True, (255, 255, 255))
-        easy = font.render("[E] Easy", True, (100, 255, 100))
-        normal = font.render("[N] Normal", True, (255, 255, 100))
-        hard = font.render("[H] Hard", True, (255, 100, 100))
+        title = font_large.render("SELECT LEVEL", True, (255, 255, 255))
+        easy = font_medium.render("[E] EASY", True, (100, 255, 100))
+        normal = font_medium.render("[N] NORMAL", True, (255, 255, 100))
+        hard = font_medium.render("[H] HARD", True, (255, 100, 100))
         screen.blit(title, (SCREEN_WIDTH//2 - title.get_width()//2, 150))
         screen.blit(easy, (SCREEN_WIDTH//2 - easy.get_width()//2, 300))
         screen.blit(normal, (SCREEN_WIDTH//2 - normal.get_width()//2, 380))
@@ -96,7 +107,7 @@ def run_pygame():
                 elif event.key == pygame.K_h:
                     difficulty = "hard"; choosing = False
 
-    # 난이도별 설정
+    # ---------------- 난이도별 설정 ----------------
     if difficulty == "easy":
         enemy_count = 1
         item_count = 10
@@ -105,12 +116,12 @@ def run_pygame():
         enemy_count = 2
         item_count = 7
         enemy_speed = 2.5
-    else:  # hard
+    else:
         enemy_count = 3
         item_count = 5
         enemy_speed = 3
 
-    # ---------------- 게임 초기화 ----------------
+    # ---------------- 초기화 ----------------
     player_row, player_col = 1, 1
     player_x, player_y = player_col * TILE_SIZE, player_row * TILE_SIZE
     player_speed = 4
@@ -118,7 +129,6 @@ def run_pygame():
     exit_row, exit_col = ROWS - 2, COLS - 2
     maze[exit_row][exit_col] = 0
 
-    # 적들 생성
     enemies = []
     for _ in range(enemy_count):
         while True:
@@ -133,7 +143,6 @@ def run_pygame():
                 })
                 break
 
-    # 아이템 여러 개 배치
     items = []
     for _ in range(item_count):
         while True:
@@ -142,7 +151,7 @@ def run_pygame():
                 items.append((r, c))
                 break
 
-    disable_duration = 180  # 3초
+    disable_duration = 180
     path_timer = 0
     running = True
     won = False
@@ -154,7 +163,7 @@ def run_pygame():
             return maze[row][col] == 0
         return False
 
-    # ---------------- 메인 루프 ----------------
+    # ---------------- 게임 루프 ----------------
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -167,13 +176,12 @@ def run_pygame():
         if keys[pygame.K_UP]: dy = -player_speed
         if keys[pygame.K_DOWN]: dy = player_speed
 
-        # 플레이어 이동
         new_x, new_y = player_x + dx, player_y + dy
         if can_move(new_x, player_y): player_x = new_x
         if can_move(player_x, new_y): player_y = new_y
         player_row, player_col = int(player_y // TILE_SIZE), int(player_x // TILE_SIZE)
 
-        # 아이템 획득 → 모든 적 무력화
+        # 아이템 획득
         for item in items[:]:
             if (player_row, player_col) == item:
                 items.remove(item)
@@ -220,34 +228,33 @@ def run_pygame():
                 won = False
                 running = False
 
-        # ---------------- 화면 렌더링 ----------------
+        # ---------------- 렌더링 ----------------
         screen.fill((0, 0, 0))
         for r in range(ROWS):
             for c in range(COLS):
                 color = WALL_COLOR if maze[r][c] == 1 else PATH_COLOR
                 pygame.draw.rect(screen, color, (c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE))
 
-        # 아이템
         for (r, c) in items:
             pygame.draw.rect(screen, ITEM_COLOR, (c * TILE_SIZE + TILE_SIZE//4, r * TILE_SIZE + TILE_SIZE//4, TILE_SIZE//2, TILE_SIZE//2))
 
-        # 출구
         pygame.draw.rect(screen, EXIT_COLOR, (exit_col * TILE_SIZE, exit_row * TILE_SIZE, TILE_SIZE, TILE_SIZE))
 
-        # 적
         for e in enemies:
             color = (150, 150, 150) if e["disabled"] else ENEMY_COLOR
             pygame.draw.rect(screen, color, (e["x"], e["y"], TILE_SIZE, TILE_SIZE))
 
-        # 플레이어
         pygame.draw.rect(screen, PLAYER_COLOR, (player_x, player_y, TILE_SIZE, TILE_SIZE))
+
+        # 인게임 HUD
+        hud_text = font_small.render(f"ITEMS LEFT: {len(items)}", True, (255, 255, 255))
+        screen.blit(hud_text, (10, 10))
 
         pygame.display.flip()
         clock.tick(60)
 
     # ---------------- 종료 화면 ----------------
-    font = pygame.font.SysFont(None, 72)
-    text = font.render("Victory!" if won else "Failed!", True, (255, 255, 0) if won else (255, 50, 50))
+    text = font_large.render("VICTORY!" if won else "FAILED!", True, (255, 255, 0) if won else (255, 50, 50))
     screen.fill((0, 0, 0))
     screen.blit(text, (SCREEN_WIDTH//2 - text.get_width()//2, SCREEN_HEIGHT//2 - text.get_height()//2))
     pygame.display.flip()
