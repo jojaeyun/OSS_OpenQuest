@@ -56,6 +56,13 @@ def reset_game():
     global score
     score = 0
 
+    global speedup_time, speedup_alpha, show_speedup, speedup, speedup_rect
+    speedup_time = 0
+    speedup_alpha = 0
+    show_speedup = False
+    speedup = font_info.render("SPEED UP!", True, RED)
+    speedup_rect = speedup.get_rect(center=(SCREEN_WIDTH // 2, 25))
+
 # 초기화 실행
 reset_game()
 
@@ -103,7 +110,21 @@ while running:
         current_score = font_info.render(f"Score:{score}", True, WHITE)
         screen.blit(current_score, (15, 15))
 
+        # 30초마다 속도 증가
+        if (current_time - speedup_time >= 30):
+            speedup_time = current_time  # 마지막 증가 시점 기록
+            ball_dx *= 1.2
+            ball_dy *= 1.2
+            show_speedup = True
+            speedup_alpha = 255  # 문구 완전 불투명으로 시작
 
+        if show_speedup:
+            speedup.set_alpha(speedup_alpha)
+            screen.blit(speedup, speedup_rect)
+            speedup_alpha -= 5
+            if speedup_alpha <= 0:
+                show_speedup = False
+            
         # 공 벽 충돌
         if ball_x <= BALL_RADIUS or ball_x >= SCREEN_WIDTH - BALL_RADIUS:
             ball_dx *= -1
