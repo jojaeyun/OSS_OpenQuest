@@ -102,7 +102,9 @@ buttons = [
     ImageButton(340, 420, rock_img, "바위"),
     ImageButton(560, 420, paper_img, "보")
 ]
-retry_button = TextButton(325, 380, 150, 70, "다시하기")
+retry_button = TextButton(225, 450, 150, 70, "다시하기")
+exit_button = TextButton(425, 450, 150, 70, "종료하기")  # 🔸 종료 버튼 추가
+
 
 # 게임 변수 및 초기화
 GAME_DURATION = 30  # 초
@@ -161,6 +163,8 @@ while running:
             else:
                 if retry_button.is_clicked(event.pos):
                     reset_game()
+                elif exit_button.is_clicked(event.pos):  # 🔸 종료 버튼 클릭 시
+                    running = False
 
     # 시간 종료 체크
     if not just_reset:
@@ -192,26 +196,20 @@ while running:
 
     if not game_over:
         # ----- 게임 중 텍스트 처리 -----
-        # 기본 안내문일 때: 작게 위쪽(150)
         if result_text == "가위, 바위, 보 중 하나를 선택하세요!":
             guide_surface = SMALL_FONT.render(result_text, True, WHITE)
             screen.blit(guide_surface, (WIDTH // 2 - guide_surface.get_width() // 2, 180))
-        # 승패 결과 (WIN/LOSE/DRAW)일 때: 크게 중앙 표시
         elif result_text in ["WIN!", "LOSE!", "DRAW!"]:
-            # 색상: WIN=green, LOSE=red, DRAW=yellow
             color = GREEN if result_text == "WIN!" else (RED if result_text == "LOSE!" else YELLOW)
             result_surface = BIG_RESULT_FONT.render(result_text, True, color)
             screen.blit(result_surface, (WIDTH // 2 - result_surface.get_width() // 2, 220))
 
-            # 컴퓨터 결과는 작게 결과 아래에 표시
             if computer_result_text:
                 computer_surface = SMALL_FONT.render(computer_result_text, True, WHITE)
                 screen.blit(computer_surface, (WIDTH // 2 - computer_surface.get_width() // 2, 320))
         else:
-            # 안전 장치: 그 외 텍스트는 중간 크기로 표시
             result_surface = TEXT_FONT.render(result_text, True, WHITE)
             screen.blit(result_surface, (WIDTH // 2 - result_surface.get_width() // 2, 230))
-
             if computer_result_text:
                 computer_surface = SMALL_FONT.render(computer_result_text, True, WHITE)
                 screen.blit(computer_surface, (WIDTH // 2 - computer_surface.get_width() // 2, 300))
@@ -227,17 +225,20 @@ while running:
         overlay.fill((DARK_GRAY))
         screen.blit(overlay, (0, 0))
 
-        # result_text는 "\n"을 포함할 수 있음 -> 줄마다 출력
         lines = result_text.split("\n")
-        # 중앙에서 위로 약간 올리기
         start_y = HEIGHT // 2 - (len(lines) - 1) * 40
         for i, line in enumerate(lines):
-            surf = BIG_RESULT_FONT.render(line, True, WHITE)
+            if i == 0:
+                surf = BIG_RESULT_FONT.render(line, True, WHITE)
+            else:
+                emphasized_font = pygame.font.SysFont('malgungothic', 100, bold=True)
+                surf = emphasized_font.render(line, True, YELLOW if "승리" in line else (RED if "컴퓨터" in line else GREEN))
             rect = surf.get_rect(center=(WIDTH // 2, start_y + i * 80))
             screen.blit(surf, rect)
 
-        # 다시하기 버튼
+        # 다시하기 & 종료하기 버튼
         retry_button.draw(screen, mouse_pos)
+        exit_button.draw(screen, mouse_pos)
 
     pygame.display.flip()
     clock.tick(60)
