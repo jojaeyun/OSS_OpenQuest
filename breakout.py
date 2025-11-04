@@ -28,13 +28,14 @@ BRICK_HEIGHT = 20
 FONT_PATH = "PressStart2P-Regular.ttf"
 font_main = pygame.font.Font(FONT_PATH, 50)
 font_small = pygame.font.Font(FONT_PATH, 15)
+font_info = pygame.font.Font(FONT_PATH, 20)
 
 # 게임 초기화 함수
 def reset_game():
     global ball_x, ball_y, ball_dx, ball_dy, paddle_x, paddle_y, bricks, game_over, result_text
 
     ball_x = SCREEN_WIDTH // 2
-    ball_y = SCREEN_HEIGHT // 2
+    ball_y = 3 * SCREEN_HEIGHT // 4
     ball_dx = 4 * random.choice([-1, 1])
     ball_dy = -4
 
@@ -44,10 +45,23 @@ def reset_game():
     bricks = []
     for row in range(5):
         for col in range(10):
-            bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 30, BRICK_WIDTH, BRICK_HEIGHT))
+            bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 80, BRICK_WIDTH, BRICK_HEIGHT))
 
     game_over = False
     result_text = ""
+
+    global start_time
+    start_time = pygame.time.get_ticks()
+
+    global score
+    score = 0
+
+    global speedup_time, speedup_alpha, show_speedup, speedup, speedup_rect
+    speedup_time = 0
+    speedup_alpha = 0
+    show_speedup = False
+    speedup = font_info.render("SPEED UP!", True, RED)
+    speedup_rect = speedup.get_rect(center=(SCREEN_WIDTH // 2, 25))
 
 # 초기화 실행
 reset_game()
@@ -80,10 +94,41 @@ while running:
         ball_x += ball_dx
         ball_y += ball_dy
 
+        # 위에 상태창 구분선 그리기
+        pygame.draw.line(screen, WHITE, (0, 50), (SCREEN_WIDTH, 50), 3)
+
+        # 시간 정보
+        current_time = (pygame.time.get_ticks() - start_time) / 1000
+        sec2_time = current_time % 10
+        sec1_time = (current_time % 60) // 10
+        min_time = current_time // 60
+        sec = font_info.render(f"{int(min_time)}:{int(sec1_time)}{int(sec2_time)}", True, WHITE)
+        sec_rect = sec.get_rect(center=(750, 25))
+        screen.blit(sec, sec_rect)
+
+        # 점수 정보
+        current_score = font_info.render(f"Score:{score}", True, WHITE)
+        screen.blit(current_score, (15, 15))
+
+        # 30초마다 속도 증가
+        if (current_time - speedup_time >= 30):
+            speedup_time = current_time  # 마지막 증가 시점 기록
+            ball_dx *= 1.2
+            ball_dy *= 1.2
+            show_speedup = True
+            speedup_alpha = 255  # 문구 완전 불투명으로 시작
+
+        if show_speedup:
+            speedup.set_alpha(speedup_alpha)
+            screen.blit(speedup, speedup_rect)
+            speedup_alpha -= 5
+            if speedup_alpha <= 0:
+                show_speedup = False
+            
         # 공 벽 충돌
         if ball_x <= BALL_RADIUS or ball_x >= SCREEN_WIDTH - BALL_RADIUS:
             ball_dx *= -1
-        if ball_y <= BALL_RADIUS:
+        if ball_y <= BALL_RADIUS + 53:
             ball_dy *= -1
         if ball_y >= SCREEN_HEIGHT:
             # 실패
@@ -99,6 +144,7 @@ while running:
         for brick in bricks[:]:
             if brick.collidepoint(ball_x, ball_y):
                 bricks.remove(brick)
+                score += 100
                 ball_dy *= -1
                 break
 
