@@ -54,7 +54,7 @@ def show_ready_go(screen, font_large, screen_w, screen_h):
         ready_sound = pygame.mixer.Sound("gamestart.mp3")
         ready_sound.play()
     except Exception:
-        print("⚠️ ready.wav 효과음을 찾을 수 없습니다.")
+        print("gamestart.mp3 효과음을 찾을 수 없습니다.")
 
     start_time = time.time()
     show_ready = True
@@ -77,6 +77,14 @@ def show_ready_go(screen, font_large, screen_w, screen_h):
 # ---------------- 게임 실행 ----------------
 def run_pygame():
     pygame.init()
+    pygame.mixer.init()  # 효과음 시스템 초기화
+
+    # 🔊 벽 충돌 효과음 로드
+    try:
+        wall_hit_sound = pygame.mixer.Sound("wall_hit.wav")
+    except Exception:
+        wall_hit_sound = None
+        print("wall_hit.wav 파일을 찾을 수 없습니다.")
 
     FONT_PATH = "PressStart2P-Regular.ttf"
     try:
@@ -127,7 +135,7 @@ def run_pygame():
                 elif event.key == pygame.K_n: difficulty = "normal"; choosing = False
                 elif event.key == pygame.K_h: difficulty = "hard"; choosing = False
 
-    # 🔹 READY & GO 효과 표시
+    # READY & GO 효과 표시
     show_ready_go(screen, font_large, SCREEN_WIDTH, SCREEN_HEIGHT)
 
     # ---------------- 난이도별 설정 ----------------
@@ -185,6 +193,8 @@ def run_pygame():
         return True
 
     t = 0
+    last_wall_hit_time = 0  # 최근 벽 충돌 시각
+
     while running:
         t += 1
         for event in pygame.event.get():
@@ -205,10 +215,24 @@ def run_pygame():
 
         new_x = player_x + player_vx
         new_y = player_y + player_vy
+
+        hit_wall = False
+
         if rect_can_move(new_x, player_y): player_x = new_x
-        else: player_vx = 0
+        else:
+            player_vx = 0
+            hit_wall = True
         if rect_can_move(player_x, new_y): player_y = new_y
-        else: player_vy = 0
+        else:
+            player_vy = 0
+            hit_wall = True
+
+        # 벽 충돌 시 효과음 (0.3초 쿨다운)
+        if hit_wall and wall_hit_sound:
+            now = time.time()
+            if now - last_wall_hit_time > 0.3:  # 🔹0.3초 쿨타임
+                wall_hit_sound.play()
+                last_wall_hit_time = now
 
         player_row, player_col = int(player_y // TILE_SIZE), int(player_x // TILE_SIZE)
 
