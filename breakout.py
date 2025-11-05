@@ -150,7 +150,7 @@ while running:
         for brick in bricks[:]:
             if brick.collidepoint(ball_x, ball_y):
                 bricks.remove(brick)
-                score += 100
+                score += 10
                 ball_dy *= -1
                 break
 
