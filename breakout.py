@@ -34,6 +34,18 @@ font_info = pygame.font.Font(FONT_PATH, 20)
 global score
 score = 0
 
+# 공과 벽돌 충돌 여부 확인
+def collision(x, y, r, rect):
+    # 원의 중심에서 가장 가까운 사각형 내부 점과 원의 중심 간의 거리 계산
+    closest_x = max(rect.left, min(x, rect.right))
+    closest_y = max(rect.top, min(y, rect.bottom))
+    
+    distance_x = x - closest_x
+    distance_y = y - closest_y
+    distance = math.sqrt(distance_x**2 + distance_y**2)
+    
+    return distance < r
+
 # 게임 초기화 함수
 def reset_game():
     global ball_x, ball_y, ball_dx, ball_dy, paddle_x, paddle_y, bricks, game_over, result_text
@@ -46,11 +58,71 @@ def reset_game():
     paddle_x = (SCREEN_WIDTH - PADDLE_WIDTH) // 2
     paddle_y = SCREEN_HEIGHT - 30
 
+    stage = random.randint(0,4)
+
     # 벽돌배치
     bricks = [] 
-    for row in range(5):
+    if (stage == 0):
+        for row in range(5):
+            for col in range(10):
+                bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 80, BRICK_WIDTH, BRICK_HEIGHT))
+    if (stage == 1):
+        for row in range(9):
+            for col in range(10):
+                if ((row % 2 == 0 and col % 2 == 1) or (row % 2 == 1 and col % 2 == 0)):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+    if (stage == 2):
+        for row in range(7):
+            if (row == 0 or row == 6):
+                for col in range(10):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+            if (row == 1 or row == 5):
+                    bricks.append(pygame.Rect(0 * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+                    bricks.append(pygame.Rect(9 * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+            if (row == 2 or row == 4):
+                bricks.append(pygame.Rect(0 * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+                bricks.append(pygame.Rect(9 * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT)) 
+                for col in range(2,8):
+                        bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))    
+            if (row == 3):
+                bricks.append(pygame.Rect(0 * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+                bricks.append(pygame.Rect(2 * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))  
+                bricks.append(pygame.Rect(7 * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT)) 
+                bricks.append(pygame.Rect(9 * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))                                      
+    if (stage == 3):
         for col in range(10):
-            bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 80, BRICK_WIDTH, BRICK_HEIGHT))
+            if (col == 0 or col == 9):
+                for row in range(9):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+            if (col == 1 or col == 8):
+                for row in range(1,8):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))        
+            if (col == 2 or col == 7):
+                for row in range(2,7):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))        
+            if (col == 3 or col == 6):
+                for row in range(3,6):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))        
+            if (col == 4 or col == 5):
+                for row in range(4,5):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))                                                
+    if (stage == 4):
+        for col in range(10):
+            if (col == 0 or col == 9):
+                for row in range(4,5):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+            if (col == 1 or col == 8):
+                for row in range(3,6):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))        
+            if (col == 2 or col == 7):
+                for row in range(2,7):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))        
+            if (col == 3 or col == 6):
+                for row in range(1,8):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))        
+            if (col == 4 or col == 5):
+                for row in range(9):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))                                                
 
     game_over = False
     result_text = ""
@@ -148,7 +220,7 @@ while running:
 
         # 공 벽돌 충돌
         for brick in bricks[:]:
-            if brick.collidepoint(ball_x, ball_y):
+            if collision(ball_x, ball_y, BALL_RADIUS, brick):
                 bricks.remove(brick)
                 score += 10
                 ball_dy *= -1
