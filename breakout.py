@@ -30,6 +30,10 @@ font_main = pygame.font.Font(FONT_PATH, 50)
 font_small = pygame.font.Font(FONT_PATH, 15)
 font_info = pygame.font.Font(FONT_PATH, 20)
 
+# 점수(갱신 가능)
+global score
+score = 0
+
 # 게임 초기화 함수
 def reset_game():
     global ball_x, ball_y, ball_dx, ball_dy, paddle_x, paddle_y, bricks, game_over, result_text
@@ -42,7 +46,8 @@ def reset_game():
     paddle_x = (SCREEN_WIDTH - PADDLE_WIDTH) // 2
     paddle_y = SCREEN_HEIGHT - 30
 
-    bricks = []
+    # 벽돌배치
+    bricks = [] 
     for row in range(5):
         for col in range(10):
             bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 80, BRICK_WIDTH, BRICK_HEIGHT))
@@ -52,9 +57,6 @@ def reset_game():
 
     global start_time
     start_time = pygame.time.get_ticks()
-
-    global score
-    score = 0
 
     global speedup_time, speedup_alpha, show_speedup, speedup, speedup_rect
     speedup_time = 0
@@ -79,7 +81,11 @@ while running:
             running = False
 
         # 엔터키로 재시작
-        if game_over and event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+        if result_text == "GAME OVER" and event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+            score = 0
+            reset_game()
+
+        if result_text == "CLEAR!!" and event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
             reset_game()
 
     if not game_over:
@@ -172,9 +178,16 @@ while running:
         time = pygame.time.get_ticks()
         brightness = int(((math.sin(time * 0.005) + 1)/3 + 1/3) * 255) # sin 파형으로 깜빡거리도록 함
         blink = (brightness, brightness, brightness)
-        restart = font_small.render("Press ENTER to Restart", True, blink)
-        rect2 = restart.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 80))
-        screen.blit(restart, rect2)
+
+        if result_text == "GAME OVER":
+            restart = font_small.render("Press ENTER to Restart", True, blink)
+            rect2 = restart.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 80))
+            screen.blit(restart, rect2)
+
+        if result_text == "CLEAR!!":
+            restart = font_small.render("Press ENTER to Continue", True, blink)
+            rect2 = restart.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 80))
+            screen.blit(restart, rect2)
 
     # 화면 업데이트
     pygame.display.flip()
