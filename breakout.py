@@ -130,7 +130,8 @@ def reset_game():
     global start_time
     start_time = pygame.time.get_ticks()
 
-    global speedup_time, speedup_alpha, show_speedup, speedup, speedup_rect
+    global speedup_time, speedup_alpha, show_speedup, speedup, speedup_rect, score_up
+    score_up = 10   # 기본점수
     speedup_time = 0
     speedup_alpha = 0
     show_speedup = False
@@ -193,6 +194,7 @@ while running:
             speedup_time = current_time  # 마지막 증가 시점 기록
             ball_dx *= 1.2
             ball_dy *= 1.2
+            score_up += 10  # 보너스 점수
             show_speedup = True
             speedup_alpha = 255  # 문구 완전 불투명으로 시작
 
@@ -222,7 +224,7 @@ while running:
         for brick in bricks[:]:
             if collision(ball_x, ball_y, BALL_RADIUS, brick):
                 bricks.remove(brick)
-                score += 10
+                score += score_up
                 ball_dy *= -1
                 break
 
