@@ -3,6 +3,7 @@ import sys
 import random
 import math
 from collections import deque
+import time
 
 # ---------------- 미로 생성 ----------------
 def generate_maze(rows, cols):
@@ -45,6 +46,32 @@ def find_path(maze, start, end):
                 parent[(nr,nc)] = (r,c)
                 queue.append((nr,nc))
     return []
+
+
+# ---------------- READY & GO 연출 ----------------
+def show_ready_go(screen, font_large, screen_w, screen_h):
+    try:
+        ready_sound = pygame.mixer.Sound("gamestart.mp3")
+        ready_sound.play()
+    except Exception:
+        print("⚠️ ready.wav 효과음을 찾을 수 없습니다.")
+
+    start_time = time.time()
+    show_ready = True
+    while time.time() - start_time < 2.0:  # READY! 2초 동안 깜빡임
+        screen.fill((0, 0, 0))
+        text = font_large.render("READY!", True, (255, 255, 255) if show_ready else (0, 0, 0))
+        screen.blit(text, (screen_w//2 - text.get_width()//2, screen_h//2 - text.get_height()//2))
+        pygame.display.flip()
+        pygame.time.delay(300)
+        show_ready = not show_ready
+
+    # GO! 표시
+    screen.fill((0, 0, 0))
+    go_text = font_large.render("GO!", True, (255, 255, 255))
+    screen.blit(go_text, (screen_w//2 - go_text.get_width()//2, screen_h//2 - go_text.get_height()//2))
+    pygame.display.flip()
+    pygame.time.delay(1000)
 
 
 # ---------------- 게임 실행 ----------------
@@ -100,6 +127,10 @@ def run_pygame():
                 elif event.key == pygame.K_n: difficulty = "normal"; choosing = False
                 elif event.key == pygame.K_h: difficulty = "hard"; choosing = False
 
+    # 🔹 READY & GO 효과 표시
+    show_ready_go(screen, font_large, SCREEN_WIDTH, SCREEN_HEIGHT)
+
+    # ---------------- 난이도별 설정 ----------------
     if difficulty == "easy":
         enemy_count, item_count, enemy_speed = 1, 8, 2.2
     elif difficulty == "normal":
@@ -144,7 +175,6 @@ def run_pygame():
     won = False
 
     def rect_can_move(x, y):
-        """ 플레이어 또는 적이 벽과 겹치는지 검사 """
         rect = pygame.Rect(x, y, TILE_SIZE, TILE_SIZE)
         for r in range(ROWS):
             for c in range(COLS):
