@@ -189,8 +189,8 @@ while running:
     bar_width = int(200 * progress_ratio)
     color = RED if remaining_time <= 10 else BLUE
     pygame.draw.rect(screen, color, (WIDTH - 300, 140, bar_width, 20), border_radius=10)
-    #time_text = SMALL_FONT.render(f"{int(remaining_time)}초", True, WHITE)
-    #screen.blit(time_text, (WIDTH - 90, 135))
+    time_text = SMALL_FONT.render(f"{int(remaining_time)}초", True, WHITE)
+    screen.blit(time_text, (WIDTH - 85, 130))
 
     if not game_over:
         # 메시지 표시
