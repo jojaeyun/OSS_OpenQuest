@@ -28,13 +28,15 @@ DARK_GRAY = (40, 40, 40)
 try:
     TITLE_FONT = pygame.font.SysFont('malgungothic', 60, bold=True)
     BIG_RESULT_FONT = pygame.font.SysFont('malgungothic', 72, bold=True)
-    TEXT_FONT = pygame.font.SysFont('malgungothic', 36)
-    SMALL_FONT = pygame.font.SysFont('malgungothic', 28)
+    TEXT_FONT = pygame.font.SysFont('malgungothic', 36)  # 종료화면 버튼용
+    SMALL_FONT = pygame.font.SysFont('malgungothic', 28)  # 안내문 등
+    TINY_FONT = pygame.font.SysFont('malgungothic', 22)   # 게임 중 종료버튼용
 except:
     TITLE_FONT = pygame.font.Font(None, 60)
     BIG_RESULT_FONT = pygame.font.Font(None, 72)
     TEXT_FONT = pygame.font.Font(None, 36)
     SMALL_FONT = pygame.font.Font(None, 28)
+    TINY_FONT = pygame.font.Font(None, 22)
 
 
 # 이미지 로드 함수
@@ -78,14 +80,15 @@ class ImageButton:
 
 
 class TextButton:
-    def __init__(self, x, y, w, h, text):
+    def __init__(self, x, y, w, h, text, font=None):
         self.rect = pygame.Rect(x, y, w, h)
         self.text = text
+        self.font = font or TEXT_FONT
 
     def draw(self, surface, mouse_pos):
         color = LIGHT_GRAY if self.rect.collidepoint(mouse_pos) else GRAY
         pygame.draw.rect(surface, color, self.rect, border_radius=10)
-        text_surface = TEXT_FONT.render(self.text, True, BLACK)
+        text_surface = self.font.render(self.text, True, BLACK)
         text_rect = text_surface.get_rect(center=self.rect.center)
         surface.blit(text_surface, text_rect)
 
@@ -99,8 +102,13 @@ buttons = [
     ImageButton(340, 420, rock_img, "바위"),
     ImageButton(560, 420, paper_img, "보")
 ]
-retry_button = TextButton(225, 450, 150, 70, "다시하기")
-exit_button = TextButton(425, 450, 150, 70, "종료하기")
+
+# 종료화면용 버튼 (큰 글씨)
+retry_button = TextButton(225, 450, 150, 70, "다시하기", font=TEXT_FONT)
+exit_button = TextButton(425, 450, 150, 70, "종료하기", font=TEXT_FONT)
+
+# 게임 실행 중 상단 종료 버튼 (작은 글씨, 크기도 작게)
+exit_button_top_left = TextButton(20, 20, 100, 40, "종료하기", font=TINY_FONT)
 
 # 게임 변수
 GAME_DURATION = 30
@@ -141,21 +149,24 @@ while running:
             running = False
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if not game_over:
-                for i, btn in enumerate(buttons):
-                    if btn.is_clicked(event.pos):
-                        player_choice = ["가위", "바위", "보"][i]
-                        computer_choice = random.choice(["가위", "바위", "보"])
-                        computer_result_text = f"컴퓨터는 {computer_choice}를 냈습니다."
-                        if player_choice == computer_choice:
-                            result_text = "DRAW!"
-                        elif (player_choice == "가위" and computer_choice == "보") or \
-                             (player_choice == "바위" and computer_choice == "가위") or \
-                             (player_choice == "보" and computer_choice == "바위"):
-                            result_text = "WIN!"
-                            player_score += 1
-                        else:
-                            result_text = "LOSE!"
-                            computer_score += 1
+                if exit_button_top_left.is_clicked(event.pos):
+                    running = False
+                else:
+                    for i, btn in enumerate(buttons):
+                        if btn.is_clicked(event.pos):
+                            player_choice = ["가위", "바위", "보"][i]
+                            computer_choice = random.choice(["가위", "바위", "보"])
+                            computer_result_text = f"컴퓨터는 {computer_choice}를 냈습니다."
+                            if player_choice == computer_choice:
+                                result_text = "DRAW!"
+                            elif (player_choice == "가위" and computer_choice == "보") or \
+                                 (player_choice == "바위" and computer_choice == "가위") or \
+                                 (player_choice == "보" and computer_choice == "바위"):
+                                result_text = "WIN!"
+                                player_score += 1
+                            else:
+                                result_text = "LOSE!"
+                                computer_score += 1
             else:
                 if retry_button.is_clicked(event.pos):
                     reset_game()
@@ -167,11 +178,11 @@ while running:
         if remaining_time <= 0 and not game_over:
             game_over = True
             if player_score > computer_score:
-                result_text = "시간 종료!\n플레이어 승리!"
+                result_text = "시간 종료!\n\n플레이어 승리!"
             elif computer_score > player_score:
-                result_text = "시간 종료!\n컴퓨터 승리!"
+                result_text = "시간 종료!\n\n컴퓨터 승리!"
             else:
-                result_text = "시간 종료!\n무승부!"
+                result_text = "시간 종료!\n\n무승부!"
             computer_result_text = ""
     else:
         just_reset = False
@@ -192,8 +203,10 @@ while running:
     time_text = SMALL_FONT.render(f"{int(remaining_time)}초", True, WHITE)
     screen.blit(time_text, (WIDTH - 85, 130))
 
+    # 상단 종료 버튼 표시
+    exit_button_top_left.draw(screen, mouse_pos)
+
     if not game_over:
-        # 메시지 표시
         if result_text == "가위, 바위, 보 중 하나를 선택하세요!":
             guide_surface = SMALL_FONT.render(result_text, True, WHITE)
             screen.blit(guide_surface, (WIDTH // 2 - guide_surface.get_width() // 2, 180))
@@ -217,9 +230,10 @@ while running:
         overlay.set_alpha(220)
         overlay.fill(DARK_GRAY)
         screen.blit(overlay, (0, 0))
-
+        
+        # 결과 텍스트는 위로 올림 (-120)
         lines = result_text.split("\n")
-        start_y = HEIGHT // 2 - (len(lines) - 1) * 40
+        start_y = HEIGHT // 2 - (len(lines) - 1) * 40 - 120  
         for i, line in enumerate(lines):
             if i == 0:
                 surf = BIG_RESULT_FONT.render(line, True, WHITE)
@@ -230,6 +244,7 @@ while running:
             rect = surf.get_rect(center=(WIDTH // 2, start_y + i * 80))
             screen.blit(surf, rect)
 
+        # 버튼은 기존 위치 그대로
         retry_button.draw(screen, mouse_pos)
         exit_button.draw(screen, mouse_pos)
 
