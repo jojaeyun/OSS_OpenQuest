@@ -1,7 +1,9 @@
 import pygame
 import sys
 import random
+import math
 from collections import deque
+import time
 
 # ---------------- 미로 생성 ----------------
 def generate_maze(rows, cols):
@@ -16,7 +18,6 @@ def generate_maze(rows, cols):
                 maze[nr][nc] = 0
                 maze[r + dr // 2][c + dc // 2] = 0
                 carve_passages(nr, nc)
-
     maze[1][1] = 0
     carve_passages(1, 1)
     return maze
@@ -47,20 +48,50 @@ def find_path(maze, start, end):
     return []
 
 
+# ---------------- READY & GO 연출 ----------------
+def show_ready_go(screen, font_large, screen_w, screen_h):
+    try:
+        ready_sound = pygame.mixer.Sound("gamestart.mp3")
+        ready_sound.play()
+    except Exception:
+        print("gamestart.mp3 효과음을 찾을 수 없습니다.")
+
+    start_time = time.time()
+    show_ready = True
+    while time.time() - start_time < 2.0:  # READY! 2초 동안 깜빡임
+        screen.fill((0, 0, 0))
+        text = font_large.render("READY!", True, (255, 255, 255) if show_ready else (0, 0, 0))
+        screen.blit(text, (screen_w//2 - text.get_width()//2, screen_h//2 - text.get_height()//2))
+        pygame.display.flip()
+        pygame.time.delay(300)
+        show_ready = not show_ready
+
+    # GO! 표시
+    screen.fill((0, 0, 0))
+    go_text = font_large.render("GO!", True, (255, 255, 255))
+    screen.blit(go_text, (screen_w//2 - go_text.get_width()//2, screen_h//2 - go_text.get_height()//2))
+    pygame.display.flip()
+    pygame.time.delay(1000)
+
+
 # ---------------- 게임 실행 ----------------
 def run_pygame():
     pygame.init()
+    pygame.mixer.init()  # 효과음 시스템 초기화
 
-    # 🔹 폰트 설정
+    # 🔊 벽 충돌 효과음 로드
+    try:
+        wall_hit_sound = pygame.mixer.Sound("wall_hit.wav")
+    except Exception:
+        wall_hit_sound = None
+        print("wall_hit.wav 파일을 찾을 수 없습니다.")
+
     FONT_PATH = "PressStart2P-Regular.ttf"
     try:
-        font_small = pygame.font.Font(FONT_PATH, 30)
-        font_medium = pygame.font.Font(FONT_PATH, 40)
+        font_small = pygame.font.Font(FONT_PATH, 24)
         font_large = pygame.font.Font(FONT_PATH, 60)
     except FileNotFoundError:
-        print(f"[경고] 폰트 파일 '{FONT_PATH}'을(를) 찾을 수 없습니다. 기본 폰트를 사용합니다.")
-        font_small = pygame.font.SysFont(None, 30)
-        font_medium = pygame.font.SysFont(None, 40)
+        font_small = pygame.font.SysFont(None, 24)
         font_large = pygame.font.SysFont(None, 60)
 
     ROWS, COLS = 21, 31
@@ -69,14 +100,14 @@ def run_pygame():
     SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
     TILE_SIZE = min(SCREEN_WIDTH // COLS, SCREEN_HEIGHT // ROWS)
     screen = pygame.display.set_mode((COLS * TILE_SIZE, ROWS * TILE_SIZE))
-    pygame.display.set_caption("랜덤 미로 게임")
+    pygame.display.set_caption("네온 미로 아케이드")
 
-    WALL_COLOR = (50, 50, 150)
-    PATH_COLOR = (200, 200, 200)
-    PLAYER_COLOR = (255, 50, 50)
-    EXIT_COLOR = (50, 200, 50)
-    ENEMY_COLOR = (200, 50, 200)
-    ITEM_COLOR = (255, 255, 0)
+    WALL_COLOR = (0, 0, 0)
+    PATH_COLOR = (70, 70, 70)
+    PLAYER_COLOR = (0, 255, 255)
+    EXIT_COLOR = (50, 255, 100)
+    ENEMY_COLOR = (255, 50, 255)
+    ITEM_COLOR = (255, 255, 100)
 
     clock = pygame.time.Clock()
 
@@ -87,44 +118,39 @@ def run_pygame():
     while choosing:
         screen.fill((0, 0, 0))
         title = font_large.render("SELECT LEVEL", True, (255, 255, 255))
-        easy = font_medium.render("[E] EASY", True, (100, 255, 100))
-        normal = font_medium.render("[N] NORMAL", True, (255, 255, 100))
-        hard = font_medium.render("[H] HARD", True, (255, 100, 100))
+        easy = font_small.render("[E] EASY", True, (100, 255, 100))
+        normal = font_small.render("[N] NORMAL", True, (255, 255, 100))
+        hard = font_small.render("[H] HARD", True, (255, 100, 100))
         screen.blit(title, (SCREEN_WIDTH//2 - title.get_width()//2, 150))
         screen.blit(easy, (SCREEN_WIDTH//2 - easy.get_width()//2, 300))
-        screen.blit(normal, (SCREEN_WIDTH//2 - normal.get_width()//2, 380))
-        screen.blit(hard, (SCREEN_WIDTH//2 - hard.get_width()//2, 460))
+        screen.blit(normal, (SCREEN_WIDTH//2 - normal.get_width()//2, 350))
+        screen.blit(hard, (SCREEN_WIDTH//2 - hard.get_width()//2, 400))
         pygame.display.flip()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit(); sys.exit()
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_e:
-                    difficulty = "easy"; choosing = False
-                elif event.key == pygame.K_n:
-                    difficulty = "normal"; choosing = False
-                elif event.key == pygame.K_h:
-                    difficulty = "hard"; choosing = False
+                if event.key == pygame.K_e: difficulty = "easy"; choosing = False
+                elif event.key == pygame.K_n: difficulty = "normal"; choosing = False
+                elif event.key == pygame.K_h: difficulty = "hard"; choosing = False
+
+    # READY & GO 효과 표시
+    show_ready_go(screen, font_large, SCREEN_WIDTH, SCREEN_HEIGHT)
 
     # ---------------- 난이도별 설정 ----------------
     if difficulty == "easy":
-        enemy_count = 1
-        item_count = 10
-        enemy_speed = 2
+        enemy_count, item_count, enemy_speed = 1, 8, 2.2
     elif difficulty == "normal":
-        enemy_count = 2
-        item_count = 7
-        enemy_speed = 2.5
+        enemy_count, item_count, enemy_speed = 2, 6, 2.8
     else:
-        enemy_count = 3
-        item_count = 5
-        enemy_speed = 3
+        enemy_count, item_count, enemy_speed = 3, 5, 3.3
 
     # ---------------- 초기화 ----------------
-    player_row, player_col = 1, 1
-    player_x, player_y = player_col * TILE_SIZE, player_row * TILE_SIZE
-    player_speed = 4
+    player_x, player_y = TILE_SIZE, TILE_SIZE
+    player_vx, player_vy = 0, 0
+    player_accel = 0.6
+    player_max_speed = 4.5
 
     exit_row, exit_col = ROWS - 2, COLS - 2
     maze[exit_row][exit_col] = 0
@@ -139,7 +165,8 @@ def run_pygame():
                     "y": r * TILE_SIZE,
                     "path": [],
                     "disabled": False,
-                    "disable_timer": 0
+                    "timer": 0,
+                    "path_timer": 0
                 })
                 break
 
@@ -147,118 +174,143 @@ def run_pygame():
     for _ in range(item_count):
         while True:
             r, c = random.randint(1, ROWS - 2), random.randint(1, COLS - 2)
-            if maze[r][c] == 0 and (r, c) not in [(player_row, player_col), (exit_row, exit_col)]:
+            if maze[r][c] == 0 and (r, c) not in [(1, 1), (exit_row, exit_col)]:
                 items.append((r, c))
                 break
 
     disable_duration = 180
-    path_timer = 0
     running = True
     won = False
 
-    def can_move(x, y):
-        col = int(x // TILE_SIZE)
-        row = int(y // TILE_SIZE)
-        if 0 <= row < ROWS and 0 <= col < COLS:
-            return maze[row][col] == 0
-        return False
+    def rect_can_move(x, y):
+        rect = pygame.Rect(x, y, TILE_SIZE, TILE_SIZE)
+        for r in range(ROWS):
+            for c in range(COLS):
+                if maze[r][c] == 1:
+                    wall_rect = pygame.Rect(c*TILE_SIZE, r*TILE_SIZE, TILE_SIZE, TILE_SIZE)
+                    if rect.colliderect(wall_rect):
+                        return False
+        return True
 
-    # ---------------- 게임 루프 ----------------
+    t = 0
+    last_wall_hit_time = 0  # 최근 벽 충돌 시각
+
     while running:
+        t += 1
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit(); sys.exit()
 
+        # 플레이어 이동
         keys = pygame.key.get_pressed()
-        dx, dy = 0, 0
-        if keys[pygame.K_LEFT]: dx = -player_speed
-        if keys[pygame.K_RIGHT]: dx = player_speed
-        if keys[pygame.K_UP]: dy = -player_speed
-        if keys[pygame.K_DOWN]: dy = player_speed
+        if keys[pygame.K_LEFT]: player_vx -= player_accel
+        if keys[pygame.K_RIGHT]: player_vx += player_accel
+        if keys[pygame.K_UP]: player_vy -= player_accel
+        if keys[pygame.K_DOWN]: player_vy += player_accel
 
-        new_x, new_y = player_x + dx, player_y + dy
-        if can_move(new_x, player_y): player_x = new_x
-        if can_move(player_x, new_y): player_y = new_y
+        player_vx *= 0.9
+        player_vy *= 0.9
+        player_vx = max(-player_max_speed, min(player_max_speed, player_vx))
+        player_vy = max(-player_max_speed, min(player_max_speed, player_vy))
+
+        new_x = player_x + player_vx
+        new_y = player_y + player_vy
+
+        hit_wall = False
+
+        if rect_can_move(new_x, player_y): player_x = new_x
+        else:
+            player_vx = 0
+            hit_wall = True
+        if rect_can_move(player_x, new_y): player_y = new_y
+        else:
+            player_vy = 0
+            hit_wall = True
+
+        # 벽 충돌 시 효과음 (0.3초 쿨다운)
+        if hit_wall and wall_hit_sound:
+            now = time.time()
+            if now - last_wall_hit_time > 0.3:  # 🔹0.3초 쿨타임
+                wall_hit_sound.play()
+                last_wall_hit_time = now
+
         player_row, player_col = int(player_y // TILE_SIZE), int(player_x // TILE_SIZE)
 
-        # 아이템 획득
+        # 아이템 충돌
         for item in items[:]:
             if (player_row, player_col) == item:
                 items.remove(item)
                 for e in enemies:
                     e["disabled"] = True
-                    e["disable_timer"] = disable_duration
+                    e["timer"] = disable_duration
 
         # 적 이동
-        path_timer += 1
         for e in enemies:
             if e["disabled"]:
-                e["disable_timer"] -= 1
-                if e["disable_timer"] <= 0:
-                    e["disabled"] = False
+                e["timer"] -= 1
+                if e["timer"] <= 0: e["disabled"] = False
                 continue
 
-            if path_timer % 20 == 0:
-                e["path"] = find_path(
-                    maze,
-                    (int(e["y"] // TILE_SIZE), int(e["x"] // TILE_SIZE)),
-                    (player_row, player_col)
-                )
+            er, ec = int(e["y"] // TILE_SIZE), int(e["x"] // TILE_SIZE)
+            e["path_timer"] += 1
+
+            # BFS로 길 계산 (0.5초마다)
+            if e["path_timer"] % 30 == 0:
+                e["path"] = find_path(maze, (er, ec), (player_row, player_col))
 
             if e["path"]:
-                next_cell = e["path"][0]
-                next_x, next_y = next_cell[1] * TILE_SIZE, next_cell[0] * TILE_SIZE
-                dir_x = next_x - e["x"]
-                dir_y = next_y - e["y"]
-                dist = max(1, (dir_x ** 2 + dir_y ** 2) ** 0.5)
-                e["x"] += enemy_speed * dir_x / dist
-                e["y"] += enemy_speed * dir_y / dist
+                next_r, next_c = e["path"][0]
+                target_x, target_y = next_c * TILE_SIZE, next_r * TILE_SIZE
+                dir_x, dir_y = target_x - e["x"], target_y - e["y"]
+                dist = max(1, math.hypot(dir_x, dir_y))
+                move_x = enemy_speed * dir_x / dist
+                move_y = enemy_speed * dir_y / dist
 
-                if abs(e["x"] - next_x) < 2 and abs(e["y"] - next_y) < 2:
+                if rect_can_move(e["x"] + move_x, e["y"]):
+                    e["x"] += move_x
+                if rect_can_move(e["x"], e["y"] + move_y):
+                    e["y"] += move_y
+
+                if abs(e["x"] - target_x) < 2 and abs(e["y"] - target_y) < 2:
                     e["path"].pop(0)
 
-        # 충돌 판정
+        # 승패 판정
         if (player_row, player_col) == (exit_row, exit_col):
-            won = True
-            running = False
-
+            won = True; running = False
         for e in enemies:
-            enemy_row, enemy_col = int(e["y"] // TILE_SIZE), int(e["x"] // TILE_SIZE)
-            if not e["disabled"] and abs(player_row - enemy_row) < 1 and abs(player_col - enemy_col) < 1:
-                won = False
-                running = False
+            if not e["disabled"]:
+                er, ec = int(e["y"] // TILE_SIZE), int(e["x"] // TILE_SIZE)
+                if abs(player_row - er) < 1 and abs(player_col - ec) < 1:
+                    won = False; running = False
 
-        # ---------------- 렌더링 ----------------
+        # 렌더링
         screen.fill((0, 0, 0))
         for r in range(ROWS):
             for c in range(COLS):
                 color = WALL_COLOR if maze[r][c] == 1 else PATH_COLOR
-                pygame.draw.rect(screen, color, (c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE))
+                pygame.draw.rect(screen, color, (c*TILE_SIZE, r*TILE_SIZE, TILE_SIZE, TILE_SIZE))
 
         for (r, c) in items:
-            pygame.draw.rect(screen, ITEM_COLOR, (c * TILE_SIZE + TILE_SIZE//4, r * TILE_SIZE + TILE_SIZE//4, TILE_SIZE//2, TILE_SIZE//2))
-
-        pygame.draw.rect(screen, EXIT_COLOR, (exit_col * TILE_SIZE, exit_row * TILE_SIZE, TILE_SIZE, TILE_SIZE))
+            pygame.draw.rect(screen, ITEM_COLOR, (c*TILE_SIZE+TILE_SIZE//4, r*TILE_SIZE+TILE_SIZE//4, TILE_SIZE//2, TILE_SIZE//2))
+        pygame.draw.rect(screen, EXIT_COLOR, (exit_col*TILE_SIZE, exit_row*TILE_SIZE, TILE_SIZE, TILE_SIZE))
 
         for e in enemies:
-            color = (150, 150, 150) if e["disabled"] else ENEMY_COLOR
+            color = (100, 100, 100) if e["disabled"] else ENEMY_COLOR
             pygame.draw.rect(screen, color, (e["x"], e["y"], TILE_SIZE, TILE_SIZE))
 
         pygame.draw.rect(screen, PLAYER_COLOR, (player_x, player_y, TILE_SIZE, TILE_SIZE))
 
-        # 인게임 HUD
-        hud_text = font_small.render(f"ITEMS LEFT: {len(items)}", True, (255, 255, 255))
-        screen.blit(hud_text, (10, 10))
-
+        hud = font_small.render(f"ITEMS LEFT: {len(items)}", True, (255, 255, 255))
+        screen.blit(hud, (10, 10))
         pygame.display.flip()
         clock.tick(60)
 
-    # ---------------- 종료 화면 ----------------
-    text = font_large.render("VICTORY!" if won else "FAILED!", True, (255, 255, 0) if won else (255, 50, 50))
+    # 종료 화면
+    text = font_large.render("VICTORY!" if won else "FAILED!", True, (50,255,50) if won else (255,80,80))
     screen.fill((0, 0, 0))
     screen.blit(text, (SCREEN_WIDTH//2 - text.get_width()//2, SCREEN_HEIGHT//2 - text.get_height()//2))
     pygame.display.flip()
-    pygame.time.wait(3000)
+    pygame.time.wait(2500)
     pygame.quit()
     sys.exit()
 
