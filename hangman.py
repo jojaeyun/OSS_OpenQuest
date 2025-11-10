@@ -126,9 +126,9 @@ while running:
                     guessed.append(letter)
                     if letter not in word:
                         wrong += 1
-                        pygame.mixer.Sound("wrong.wav").play()
+                        pygame.mixer.Sound("hangman_sound/wrong.wav").play()
                     else:
-                        pygame.mixer.Sound("correct.wav").play()
+                        pygame.mixer.Sound("hangman_sound/correct.wav").play()
                     # 남은 알파벳이 없으면 성공
                     if all(ch in guessed for ch in word):
                         win = True
@@ -159,7 +159,7 @@ while running:
         rect = success.get_rect(center=(580, 300))
         screen.blit(success, rect)
         if (win_sound):
-            pygame.mixer.Sound("succeed.wav").play()
+            pygame.mixer.Sound("hangman_sound/succeed.wav").play()
         win_sound = False
         
     if (lose): # 실패한 경우
@@ -169,7 +169,7 @@ while running:
         rect = fail_word.get_rect(center=(580, 350))
         screen.blit(fail_word, rect)
         if (lose_sound):
-            pygame.mixer.Sound("fail.wav").play()
+            pygame.mixer.Sound("hangman_sound/fail.wav").play()
         lose_sound = False
 
     pygame.display.flip()
