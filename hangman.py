@@ -74,7 +74,7 @@ def draw_guessed(guessed):
 
 # 게임 초기화 함수
 def reset_game():
-    global running, clock, word, guessed, wrong, MAX_TRIES, win, lose, hint_letters, hint_3, hint_5
+    global running, clock, word, guessed, wrong, MAX_TRIES, win, lose, hint_letters, hint_3, hint_5, win_sound, lose_sound
 
     running = True
     clock = pygame.time.Clock()
@@ -85,6 +85,8 @@ def reset_game():
     MAX_TRIES = 6
     win = False
     lose = False
+    win_sound = True
+    lose_sound = True
     hint_3 = False
     hint_5 = False
 
@@ -124,6 +126,9 @@ while running:
                     guessed.append(letter)
                     if letter not in word:
                         wrong += 1
+                        pygame.mixer.Sound("wrong.wav").play()
+                    else:
+                        pygame.mixer.Sound("correct.wav").play()
                     # 남은 알파벳이 없으면 성공
                     if all(ch in guessed for ch in word):
                         win = True
@@ -153,6 +158,9 @@ while running:
         success = font_success.render("Succeed!", True, GREEN)
         rect = success.get_rect(center=(580, 300))
         screen.blit(success, rect)
+        if (win_sound):
+            pygame.mixer.Sound("succeed.wav").play()
+        win_sound = False
         
     if (lose): # 실패한 경우
         fail = font_fail.render("Fail!", True, RED)
@@ -160,6 +168,9 @@ while running:
         fail_word = font_fail_word.render(f"word: {word}", True, RED)
         rect = fail_word.get_rect(center=(580, 350))
         screen.blit(fail_word, rect)
+        if (lose_sound):
+            pygame.mixer.Sound("fail.wav").play()
+        lose_sound = False
 
     pygame.display.flip()
     clock.tick(30)
