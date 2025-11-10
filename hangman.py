@@ -2,6 +2,7 @@ import pygame
 import random
 import math
 import hangman_words
+import string
 
 pygame.init()
 WIDTH, HEIGHT = 800, 600
@@ -23,6 +24,21 @@ font_success = pygame.font.Font(FONT_PATH, 40)
 font_fail = pygame.font.Font(FONT_PATH, 50)
 font_fail_word = pygame.font.Font(FONT_PATH, 25)
 font_restart = pygame.font.Font(FONT_PATH, 15)
+
+# 힌트 알파벳 생성 함수
+def hint():
+    while True:
+        letter = random.choice(string.ascii_lowercase)
+        if (letter not in guessed) and (letter not in word) and (letter not in hint_letters):
+            hint_letters.append(letter)
+            break
+
+# 힌트 표시 함수
+def draw_hint():
+    for i, letter in enumerate(hint_letters):
+        text = font_restart.render(f"'{letter}' is not included", True, (100, 100, 100))
+        rect = text.get_rect(center=(580, 200 + i * 40))
+        screen.blit(text, rect)
 
 # 행맨 그림 그리는 함수
 def draw_hangman(stage):
@@ -53,28 +69,32 @@ def draw_word(word, guessed):
 
 # 사용한 알파벳들 표시 함수
 def draw_guessed(guessed):
-    text = font_use.render("Using: " + " ".join(sorted(guessed)), True, (100, 100, 100))
+    text = font_use.render("Using: " + " ".join(sorted(guessed)), True, (150, 150, 150))
     screen.blit(text, (60, 530))
 
 # 게임 초기화 함수
 def reset_game():
-    global running, clock, word, guessed, wrong, MAX_TRIES, win, lose
+    global running, clock, word, guessed, wrong, MAX_TRIES, win, lose, hint_letters, hint_3, hint_5
 
     running = True
     clock = pygame.time.Clock()
     word = random.choice(hangman_words.word_list)
     guessed = []    # 입력한 알파벳들
+    hint_letters = []
     wrong = 0
     MAX_TRIES = 6
     win = False
     lose = False
+    hint_3 = False
+    hint_5 = False
 
 reset_game() # 최초 초기화 실행
 
 while running:
     screen.fill(BLACK)
 
-    if (win==True or lose==True):   # 게임이 끝난 경우
+    if (win or lose):   # 게임이 끝난 경우
+        hint_letters.clear()
         time = pygame.time.get_ticks()
         brightness = int(((math.sin(time * 0.005) + 1)/3 + 1/3) * 255) # sin 파형으로 깜빡거리도록 함
         blink = (brightness, brightness, brightness)
@@ -111,20 +131,30 @@ while running:
                     elif wrong >= MAX_TRIES:
                         lose = True
 
-    # 그림, 단어, 입력 표시
+    if wrong == 3 and not hint_3:   # 첫번째 힌트 (3회)
+        hint_3 = True
+        hint()
+        
+    if wrong == 5 and not hint_5:   # 두번째 힌트 (5회)
+        hint_5 = True
+        hint()
+        
+    # 그림, 단어, 입력, 힌트 표시
     draw_hangman(wrong)
     draw_word(word, guessed)
     draw_guessed(guessed)
+    if (not win or not lose):
+        draw_hint()
 
-    info_text = font_wrong.render(f"Wrong Count: {wrong} / 6", True, (100, 100, 100))
+    info_text = font_wrong.render(f"Wrong Count: {wrong} / 6", True, (150, 150, 150))
     screen.blit(info_text, (420, 150))
 
-    if(win==True): # 성공한 경우
+    if (win): # 성공한 경우
         success = font_success.render("Succeed!", True, GREEN)
         rect = success.get_rect(center=(580, 300))
         screen.blit(success, rect)
         
-    if(lose==True): # 실패한 경우
+    if (lose): # 실패한 경우
         fail = font_fail.render("Fail!", True, RED)
         screen.blit(fail, (470, 250))
         fail_word = font_fail_word.render(f"word: {word}", True, RED)
