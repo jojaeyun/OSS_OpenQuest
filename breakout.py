@@ -131,13 +131,15 @@ def reset_game():
     global start_time
     start_time = pygame.time.get_ticks()
 
-    global speedup_time, speedup_alpha, show_speedup, speedup, speedup_rect, score_up
+    global speedup_time, speedup_alpha, show_speedup, speedup, speedup_rect, score_up, gameover_sound, clear_sound
     score_up = 10   # 기본점수
     speedup_time = 0
     speedup_alpha = 0
     show_speedup = False
     speedup = font_info.render("SPEED UP!", True, RED)
     speedup_rect = speedup.get_rect(center=(SCREEN_WIDTH // 2, 25))
+    gameover_sound = True
+    clear_sound = True
 
 # 초기화 실행
 reset_game()
@@ -198,6 +200,7 @@ while running:
             score_up += 10  # 보너스 점수
             show_speedup = True
             speedup_alpha = 255  # 문구 완전 불투명으로 시작
+            pygame.mixer.Sound("breakout_sound/speedup.wav").play()
 
         if show_speedup:
             speedup.set_alpha(speedup_alpha)
@@ -209,8 +212,10 @@ while running:
         # 공 벽 충돌
         if ball_x <= BALL_RADIUS or ball_x >= SCREEN_WIDTH - BALL_RADIUS:
             ball_dx *= -1
+            pygame.mixer.Sound("breakout_sound/collision.wav").play()
         if ball_y <= BALL_RADIUS + 53:
             ball_dy *= -1
+            pygame.mixer.Sound("breakout_sound/collision.wav").play()
         if ball_y >= SCREEN_HEIGHT:
             # 실패
             game_over = True
@@ -220,6 +225,7 @@ while running:
         paddle_rect = pygame.Rect(paddle_x, paddle_y, PADDLE_WIDTH, PADDLE_HEIGHT)
         if paddle_rect.collidepoint(ball_x, ball_y + BALL_RADIUS):
             ball_dy *= -1
+            pygame.mixer.Sound("breakout_sound/collision.wav").play()
 
         # 공 벽돌 충돌
         for brick in bricks[:]:
@@ -227,6 +233,7 @@ while running:
                 bricks.remove(brick)
                 score += score_up
                 ball_dy *= -1
+                pygame.mixer.Sound("breakout_sound/break.wav").play()
                 break
 
         # 모든 벽돌 제거 시
@@ -261,6 +268,9 @@ while running:
             restart = font_small.render("Press ENTER to Restart", True, blink)
             rect2 = restart.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 130))
             screen.blit(restart, rect2)
+            if (gameover_sound):
+                pygame.mixer.Sound("breakout_sound/gameover.wav").play()
+            gameover_sound = False
 
         if result_text == "CLEAR!!":
             current_text = font_result.render("Current Score", True, (150,150,150))
@@ -269,6 +279,9 @@ while running:
             restart = font_small.render("Press ENTER to Continue", True, blink)
             rect2 = restart.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 130))
             screen.blit(restart, rect2)
+            if (clear_sound):
+                pygame.mixer.Sound("breakout_sound/clear.wav").play()
+            clear_sound = False
 
         result_score = font_result.render(f"{score}", True, (150,150,150))
         score_rect = result_score.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30))
