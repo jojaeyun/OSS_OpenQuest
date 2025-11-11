@@ -29,6 +29,7 @@ FONT_PATH = "PressStart2P-Regular.ttf"
 font_main = pygame.font.Font(FONT_PATH, 50)
 font_small = pygame.font.Font(FONT_PATH, 15)
 font_info = pygame.font.Font(FONT_PATH, 20)
+font_result = pygame.font.Font(FONT_PATH, 25)
 
 # 점수(갱신 가능)
 global score
@@ -246,7 +247,7 @@ while running:
     else:
         # 결과 메시지 표시
         result = font_main.render(result_text, True, WHITE)
-        rect = result.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 80))
+        rect = result.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 130))
         screen.blit(result, rect)
 
         time = pygame.time.get_ticks()
@@ -254,14 +255,24 @@ while running:
         blink = (brightness, brightness, brightness)
 
         if result_text == "GAME OVER":
+            final_text = font_result.render("Final Score", True, (150,150,150))
+            final_rect = final_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 20))
+            screen.blit(final_text, final_rect)
             restart = font_small.render("Press ENTER to Restart", True, blink)
-            rect2 = restart.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 80))
+            rect2 = restart.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 130))
             screen.blit(restart, rect2)
 
         if result_text == "CLEAR!!":
+            current_text = font_result.render("Current Score", True, (150,150,150))
+            current_rect = current_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 20))
+            screen.blit(current_text, current_rect)
             restart = font_small.render("Press ENTER to Continue", True, blink)
-            rect2 = restart.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 80))
+            rect2 = restart.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 130))
             screen.blit(restart, rect2)
+
+        result_score = font_result.render(f"{score}", True, (150,150,150))
+        score_rect = result_score.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30))
+        screen.blit(result_score, score_rect)
 
     # 화면 업데이트
     pygame.display.flip()
