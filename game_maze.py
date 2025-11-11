@@ -67,7 +67,6 @@ def show_ready_go(screen, font_large, screen_w, screen_h):
     pygame.display.flip()
     pygame.time.delay(1000)
 
-
 # ---------------- 버튼 표시 함수 ----------------
 def draw_button(screen, rect, text, font, color_bg, color_text):
     pygame.draw.rect(screen, color_bg, rect, border_radius=10)
@@ -78,13 +77,17 @@ def draw_button(screen, rect, text, font, color_bg, color_text):
          rect.centery - text_surface.get_height() // 2)
     )
 
-
 # ---------------- 게임 실행 ----------------
-def run_pygame():
+def run_pygame(difficulty=None):
     pygame.init()
     pygame.mixer.init()
 
-    FONT_PATH = "../fonts/PressStart2P-Regular.ttf"
+    try:
+        wall_hit_sound = pygame.mixer.Sound("wall_hit.wav")
+    except Exception:
+        wall_hit_sound = None
+
+    FONT_PATH = "PressStart2P-Regular.ttf"
     try:
         font_small = pygame.font.Font(FONT_PATH, 24)
         font_large = pygame.font.Font(FONT_PATH, 60)
@@ -95,32 +98,31 @@ def run_pygame():
     SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("네온 미로 아케이드")
-
     clock = pygame.time.Clock()
 
-    while True:  # 🔁 메인 루프 (MAIN 버튼 누를 때 다시 시작됨)
+    while True:
         # ---------------- 난이도 선택 ----------------
-        choosing = True
-        difficulty = None
-        while choosing:
-            screen.fill((0, 0, 0))
-            title = font_large.render("SELECT LEVEL", True, (255, 255, 255))
-            easy = font_small.render("[E] EASY", True, (100, 255, 100))
-            normal = font_small.render("[N] NORMAL", True, (255, 255, 100))
-            hard = font_small.render("[H] HARD", True, (255, 100, 100))
-            screen.blit(title, (SCREEN_WIDTH//2 - title.get_width()//2, 150))
-            screen.blit(easy, (SCREEN_WIDTH//2 - easy.get_width()//2, 300))
-            screen.blit(normal, (SCREEN_WIDTH//2 - normal.get_width()//2, 350))
-            screen.blit(hard, (SCREEN_WIDTH//2 - hard.get_width()//2, 400))
-            pygame.display.flip()
+        if difficulty is None:
+            choosing = True
+            while choosing:
+                screen.fill((0, 0, 0))
+                title = font_large.render("SELECT LEVEL", True, (255, 255, 255))
+                easy = font_small.render("[E] EASY", True, (100, 255, 100))
+                normal = font_small.render("[N] NORMAL", True, (255, 255, 100))
+                hard = font_small.render("[H] HARD", True, (255, 100, 100))
+                screen.blit(title, (SCREEN_WIDTH//2 - title.get_width()//2, 150))
+                screen.blit(easy, (SCREEN_WIDTH//2 - easy.get_width()//2, 300))
+                screen.blit(normal, (SCREEN_WIDTH//2 - normal.get_width()//2, 350))
+                screen.blit(hard, (SCREEN_WIDTH//2 - hard.get_width()//2, 400))
+                pygame.display.flip()
 
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit(); sys.exit()
-                elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_e: difficulty = "easy"; choosing = False
-                    elif event.key == pygame.K_n: difficulty = "normal"; choosing = False
-                    elif event.key == pygame.K_h: difficulty = "hard"; choosing = False
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit(); sys.exit()
+                    elif event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_e: difficulty = "easy"; choosing = False
+                        elif event.key == pygame.K_n: difficulty = "normal"; choosing = False
+                        elif event.key == pygame.K_h: difficulty = "hard"; choosing = False
 
         show_ready_go(screen, font_large, SCREEN_WIDTH, SCREEN_HEIGHT)
 
@@ -142,6 +144,7 @@ def run_pygame():
         exit_row, exit_col = ROWS - 2, COLS - 2
         maze[exit_row][exit_col] = 0
 
+        # ---------------- 적 초기화 ----------------
         enemies = []
         for _ in range(enemy_count):
             while True:
@@ -150,11 +153,22 @@ def run_pygame():
                     enemies.append({"x": c*TILE_SIZE, "y": r*TILE_SIZE, "path": [], "disabled": False, "timer": 0, "path_timer": 0})
                     break
 
+        # ---------------- 아이템 초기화 (플레이어 근처 최소 1개) ----------------
         items = []
-        for _ in range(item_count):
+
+        # 1️⃣ 플레이어 근처에 최소 1개 아이템
+        while True:
+            r = random.randint(1, 3)
+            c = random.randint(1, 3)
+            if maze[r][c] == 0:
+                items.append((r, c))
+                break
+
+        # 나머지 아이템
+        for _ in range(item_count - 1):
             while True:
                 r, c = random.randint(1, ROWS-2), random.randint(1, COLS-2)
-                if maze[r][c] == 0 and (r, c) not in [(1,1), (exit_row, exit_col)]:
+                if maze[r][c] == 0 and (r, c) not in [(1,1), (exit_row, exit_col)] + items:
                     items.append((r, c))
                     break
 
@@ -178,6 +192,8 @@ def run_pygame():
         running, won = True, False
         disable_duration = 180
         t = 0
+
+        # ---------------- 메인 게임 루프 ----------------
         while running:
             t += 1
             for event in pygame.event.get():
@@ -195,10 +211,20 @@ def run_pygame():
             player_vy = max(-player_max_speed, min(player_max_speed, player_vy))
 
             new_x, new_y = player_x + player_vx, player_y + player_vy
-            if rect_can_move(new_x, player_y): player_x = new_x
-            else: player_vx = 0
-            if rect_can_move(player_x, new_y): player_y = new_y
-            else: player_vy = 0
+
+            # ---------------- 벽 충돌 & 소리 ----------------
+            if rect_can_move(new_x, player_y):
+                player_x = new_x
+            else:
+                player_vx = 0
+                if wall_hit_sound:
+                    wall_hit_sound.play()
+            if rect_can_move(player_x, new_y):
+                player_y = new_y
+            else:
+                player_vy = 0
+                if wall_hit_sound:
+                    wall_hit_sound.play()
 
             player_row, player_col = int(player_y // TILE_SIZE), int(player_x // TILE_SIZE)
 
@@ -223,8 +249,13 @@ def run_pygame():
                     target_x, target_y = next_c*TILE_SIZE, next_r*TILE_SIZE
                     dir_x, dir_y = target_x - e["x"], target_y - e["y"]
                     dist = max(1, math.hypot(dir_x, dir_y))
-                    e["x"] += enemy_speed * dir_x / dist
-                    e["y"] += enemy_speed * dir_y / dist
+                    move_x = enemy_speed * dir_x / dist
+                    move_y = enemy_speed * dir_y / dist
+                    # 벽 체크 후 이동
+                    if rect_can_move(e["x"] + move_x, e["y"]):
+                        e["x"] += move_x
+                    if rect_can_move(e["x"], e["y"] + move_y):
+                        e["y"] += move_y
                     if abs(e["x"] - target_x) < 2 and abs(e["y"] - target_y) < 2:
                         e["path"].pop(0)
 
@@ -236,7 +267,7 @@ def run_pygame():
                     if abs(player_row - er) < 1 and abs(player_col - ec) < 1:
                         won = False; running = False
 
-            # 렌더링
+            # ---------------- 렌더링 ----------------
             screen.fill((0, 0, 0))
             for r in range(ROWS):
                 for c in range(COLS):
@@ -254,13 +285,12 @@ def run_pygame():
             pygame.display.flip()
             clock.tick(60)
 
-        # --- 🔹게임 종료 후 버튼 화면 표시 (여기 추가됨) ---
+        # ---------------- 게임 종료 화면 ----------------
         victory_sound_played = False
         defeat_sound_played = False
-
         while True:
             screen.fill((0, 0, 0))
-            msg = "VICTORY!" if won else "FAILED!"
+            msg = "VICTORY!" if won else "DEFEAT!"
             text = font_large.render(msg, True, (50,255,50) if won else (255,80,80))
             screen.blit(text, (SCREEN_WIDTH//2 - text.get_width()//2, 150))
 
@@ -274,7 +304,7 @@ def run_pygame():
             draw_button(screen, quit_btn, "QUIT", font_small, (200,50,50), (255,255,255))
             pygame.display.flip()
 
-            # 승리/패배 사운드 재생 (한 번만)
+            # 승리/패배 사운드 재생
             if won and not victory_sound_played:
                 try:
                     pygame.mixer.Sound("victory.mp3").play()
@@ -293,17 +323,15 @@ def run_pygame():
                     pygame.quit(); sys.exit()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if main_btn.collidepoint(event.pos):
-                        # 메인 메뉴로 돌아가기
-                        break  # while True (버튼 루프) 탈출
+                        difficulty = None
+                        break
                     elif retry_btn.collidepoint(event.pos):
-                        # 같은 라운드 다시 실행
-                        run_pygame()
+                        run_pygame(difficulty=difficulty)
                     elif quit_btn.collidepoint(event.pos):
                         pygame.quit(); sys.exit()
             else:
                 continue
-            break  # main_btn 클릭 시 outer 루프 빠져나와 재시작
-
+            break  # main_btn 클릭 시 while 루프 탈출, 난이도 선택 화면으로 돌아감
 
 if __name__ == "__main__":
     run_pygame()
