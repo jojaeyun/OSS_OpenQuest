@@ -11,7 +11,7 @@ BASE_PATH = os.path.dirname(os.path.abspath(__file__))
 # 화면 설정
 WIDTH, HEIGHT = 800, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("가위바위보 게임")
+pygame.display.set_caption("가위바위보 연승 게임")
 
 # 색상
 WHITE = (255, 255, 255)
@@ -28,9 +28,9 @@ DARK_GRAY = (40, 40, 40)
 try:
     TITLE_FONT = pygame.font.SysFont('malgungothic', 60, bold=True)
     BIG_RESULT_FONT = pygame.font.SysFont('malgungothic', 72, bold=True)
-    TEXT_FONT = pygame.font.SysFont('malgungothic', 36)  # 종료화면 버튼용
-    SMALL_FONT = pygame.font.SysFont('malgungothic', 28)  # 안내문 등
-    TINY_FONT = pygame.font.SysFont('malgungothic', 22)   # 게임 중 종료버튼용
+    TEXT_FONT = pygame.font.SysFont('malgungothic', 36)
+    SMALL_FONT = pygame.font.SysFont('malgungothic', 28)
+    TINY_FONT = pygame.font.SysFont('malgungothic', 22)
 except:
     TITLE_FONT = pygame.font.Font(None, 60)
     BIG_RESULT_FONT = pygame.font.Font(None, 72)
@@ -103,22 +103,19 @@ buttons = [
     ImageButton(560, 420, paper_img, "보")
 ]
 
-# 종료화면용 버튼 (큰 글씨)
 retry_button = TextButton(225, 450, 150, 70, "다시하기", font=TEXT_FONT)
 exit_button = TextButton(425, 450, 150, 70, "종료하기", font=TEXT_FONT)
-
-# 게임 실행 중 상단 종료 버튼 (작은 글씨, 크기도 작게)
 exit_button_top_left = TextButton(20, 20, 100, 40, "종료하기", font=TINY_FONT)
 
-# 게임 변수
+# 게임 시간
 GAME_DURATION = 30
 
 
 def reset_game():
-    global player_score, computer_score, result_text, computer_result_text
+    global current_streak, max_streak, result_text, computer_result_text
     global start_time, game_over, player_choice, computer_choice, just_reset
-    player_score = 0
-    computer_score = 0
+    current_streak = 0
+    max_streak = 0
     result_text = "가위, 바위, 보 중 하나를 선택하세요!"
     computer_result_text = ""
     player_choice = None
@@ -159,14 +156,16 @@ while running:
                             computer_result_text = f"컴퓨터는 {computer_choice}를 냈습니다."
                             if player_choice == computer_choice:
                                 result_text = "DRAW!"
+                                current_streak = 0
                             elif (player_choice == "가위" and computer_choice == "보") or \
                                  (player_choice == "바위" and computer_choice == "가위") or \
                                  (player_choice == "보" and computer_choice == "바위"):
                                 result_text = "WIN!"
-                                player_score += 1
+                                current_streak += 1
+                                max_streak = max(max_streak, current_streak)
                             else:
                                 result_text = "LOSE!"
-                                computer_score += 1
+                                current_streak = 0
             else:
                 if retry_button.is_clicked(event.pos):
                     reset_game()
@@ -177,23 +176,18 @@ while running:
     if not just_reset:
         if remaining_time <= 0 and not game_over:
             game_over = True
-            if player_score > computer_score:
-                result_text = "시간 종료!\n\n플레이어 승리!"
-            elif computer_score > player_score:
-                result_text = "시간 종료!\n\n컴퓨터 승리!"
-            else:
-                result_text = "시간 종료!\n\n무승부!"
+            result_text = f"시간 종료!\n\n최고 연승: {max_streak}회"
             computer_result_text = ""
     else:
         just_reset = False
 
     # 제목
-    title_surface = TITLE_FONT.render("가위바위보 게임", True, BLUE)
+    title_surface = TITLE_FONT.render("가위바위보 연승 게임", True, BLUE)
     screen.blit(title_surface, (WIDTH // 2 - title_surface.get_width() // 2, 40))
 
-    # 점수 표시
-    score_text = SMALL_FONT.render(f"플레이어: {player_score}  컴퓨터: {computer_score}", True, WHITE)
-    screen.blit(score_text, (50, 140))
+    # 연승 표시
+    streak_text = SMALL_FONT.render(f"현재 연승: {current_streak}회   최고 연승: {max_streak}회", True, WHITE)
+    screen.blit(streak_text, (50, 140))
 
     # 남은 시간 progress bar
     pygame.draw.rect(screen, GRAY, (WIDTH - 300, 140, 200, 20), border_radius=10)
@@ -206,6 +200,7 @@ while running:
     # 상단 종료 버튼 표시
     exit_button_top_left.draw(screen, mouse_pos)
 
+    # 게임 중 화면
     if not game_over:
         if result_text == "가위, 바위, 보 중 하나를 선택하세요!":
             guide_surface = SMALL_FONT.render(result_text, True, WHITE)
@@ -217,34 +212,37 @@ while running:
             if computer_result_text:
                 comp_surface = SMALL_FONT.render(computer_result_text, True, WHITE)
                 screen.blit(comp_surface, (WIDTH // 2 - comp_surface.get_width() // 2, 320))
+
+            # 연승 효과 메시지
+            if current_streak >= 3:
+                bonus_msg = f"{current_streak}연승 달성!"
+                bonus_font = pygame.font.SysFont('malgungothic', 40, bold=True)
+                bonus_surface = bonus_font.render(bonus_msg, True, YELLOW)
+                screen.blit(bonus_surface, (WIDTH // 2 - bonus_surface.get_width() // 2, 370))
         else:
             result_surface = TEXT_FONT.render(result_text, True, WHITE)
             screen.blit(result_surface, (WIDTH // 2 - result_surface.get_width() // 2, 230))
             if computer_result_text:
                 comp_surface = SMALL_FONT.render(computer_result_text, True, WHITE)
                 screen.blit(comp_surface, (WIDTH // 2 - comp_surface.get_width() // 2, 300))
+
         for btn in buttons:
             btn.draw(screen, mouse_pos)
+
+    # 종료 화면
     else:
         overlay = pygame.Surface((WIDTH, HEIGHT))
         overlay.set_alpha(220)
         overlay.fill(DARK_GRAY)
         screen.blit(overlay, (0, 0))
-        
-        # 결과 텍스트는 위로 올림 (-120)
+
         lines = result_text.split("\n")
-        start_y = HEIGHT // 2 - (len(lines) - 1) * 40 - 120  
+        start_y = HEIGHT // 2 - (len(lines) - 1) * 40 - 120
         for i, line in enumerate(lines):
-            if i == 0:
-                surf = BIG_RESULT_FONT.render(line, True, WHITE)
-            else:
-                big_font = pygame.font.SysFont('malgungothic', 100, bold=True)
-                color = YELLOW if "승리" in line else (RED if "컴퓨터" in line else GREEN)
-                surf = big_font.render(line, True, color)
+            surf = BIG_RESULT_FONT.render(line, True, WHITE if i == 0 else YELLOW)
             rect = surf.get_rect(center=(WIDTH // 2, start_y + i * 80))
             screen.blit(surf, rect)
 
-        # 버튼은 기존 위치 그대로
         retry_button.draw(screen, mouse_pos)
         exit_button.draw(screen, mouse_pos)
 
