@@ -11,7 +11,7 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("미니게임 선택")
 
 # 🎮 아케이드 폰트 적용
-FONT_PATH = "PressStart2P-Regular.ttf"
+FONT_PATH = "./fonts/PressStart2P-Regular.ttf"
 TITLE_FONT = pygame.font.Font(FONT_PATH, 70)
 MENU_FONT = pygame.font.Font(FONT_PATH, 30)
 
@@ -31,10 +31,10 @@ selected = 0
 
 # 각 게임 스크립트 경로 (폴더별로 브랜치 코드 복사)
 game_paths = [
-    "game-rps/main.py",
-    "game-maze/main.py",
-    "game-hangman/main.py",
-    "game-breakout/main.py"
+    "./RSP/rpsgame.py",
+    "./maze_game/game_maze.py",
+    "./hangman/hangman.py",
+    "./Breakout!/breakout.py"
 ]
 
 def draw_menu():
