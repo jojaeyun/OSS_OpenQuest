@@ -11,9 +11,9 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("미니게임 선택")
 
 # 🎮 아케이드 폰트 적용
-FONT_PATH = "PressStart2P-Regular.ttf"   # 프로젝트 폴더/fonts/arcade.ttf
-TITLE_FONT = pygame.font.Font(FONT_PATH, 70)  # 타이틀 전용 폰트
-MENU_FONT = pygame.font.Font(FONT_PATH, 30)   # 메뉴 전용 폰트
+FONT_PATH = "PressStart2P-Regular.ttf"
+TITLE_FONT = pygame.font.Font(FONT_PATH, 70)
+MENU_FONT = pygame.font.Font(FONT_PATH, 30)
 
 clock = pygame.time.Clock()
 
@@ -25,10 +25,17 @@ menu_items = [
     "Maze game",
     "Hangman",
     "Break Out!",
-    "Geussing the numbers",
     "Quit"
 ]
 selected = 0
+
+# 각 게임 스크립트 경로 (폴더별로 브랜치 코드 복사)
+game_paths = [
+    "game-rps/main.py",
+    "game-maze/main.py",
+    "game-hangman/main.py",
+    "game-breakout/main.py"
+]
 
 def draw_menu():
     screen.fill((0, 0, 0))
@@ -48,25 +55,13 @@ def draw_menu():
                              (x-20, y-10, item.get_width()+40, item.get_height()+20), 3)
 
 def run_selected(idx):
-    branches = [
-        "feature/game-rps",
-        "feature/game-maze",
-        "feature/game-hangman",
-        "feature/game-breakout"
-    ]
-    scripts = ["main.py"] * 4  # 각 브랜치의 실행 스크립트 이름
-
-    if idx < 5:
-        branch = branches[idx]
-        script = scripts[idx]
-
-        # 현재 저장소의 브랜치 체크아웃
-        subprocess.run(["git", "checkout", branch])
-        # 스크립트 실행
-        path = os.path.join(os.getcwd(), script)
-        subprocess.run(["python", path])
-        # 게임 종료 후 다시 main 브랜치로
-        subprocess.run(["git", "checkout", "main"])
+    if idx < len(game_paths):
+        path = os.path.join(os.getcwd(), game_paths[idx])
+        if os.path.exists(path):
+            subprocess.run([sys.executable, path])
+        else:
+            print(f"Game script not found: {path}")
+            pygame.time.delay(1000)
     else:
         pygame.quit()
         sys.exit()
@@ -77,10 +72,10 @@ while True:
             pygame.quit()
             sys.exit()
         elif event.type == pygame.KEYDOWN:  # 키보드 입력
-            if event.key == pygame.K_DOWN or event.key == pygame.K_s:
+            if event.key in [pygame.K_DOWN, pygame.K_s]:
                 selected = (selected + 1) % len(menu_items)
                 select_sound.play()
-            elif event.key == pygame.K_UP or event.key == pygame.K_w:
+            elif event.key in [pygame.K_UP, pygame.K_w]:
                 selected = (selected - 1) % len(menu_items)
                 select_sound.play()
             elif event.key == pygame.K_RETURN:
