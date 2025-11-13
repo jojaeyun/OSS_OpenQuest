@@ -25,7 +25,6 @@ menu_items = [
     "Maze game",
     "Hangman",
     "Break Out!",
-    "Guessing the numbers",
     "Quit"
 ]
 selected = 0
@@ -35,8 +34,7 @@ game_paths = [
     "game-rps/main.py",
     "game-maze/main.py",
     "game-hangman/main.py",
-    "game-breakout/main.py",
-    "game-guessing/main.py"
+    "game-breakout/main.py"
 ]
 
 def draw_menu():
