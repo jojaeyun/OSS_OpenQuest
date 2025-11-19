@@ -138,7 +138,6 @@ def run_pygame(difficulty=None):
         SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
         TILE_SIZE = 24  # --- 수정됨: 기본 타일 크기 (조정 가능) ---
 
-        # --- 수정됨: 화면 크기에 맞게 행, 열 계산 ---
         COLS = SCREEN_WIDTH // TILE_SIZE
         ROWS = SCREEN_HEIGHT // TILE_SIZE
         if ROWS % 2 == 0: ROWS -= 1
