@@ -251,12 +251,7 @@ while running:
                 comp_surface = SMALL_FONT.render(computer_result_text, True, WHITE)
                 screen.blit(comp_surface, (WIDTH // 2 - comp_surface.get_width() // 2, 370))
 
-            # 연승 효과 메시지
-            if current_streak >= 3:
-                bonus_msg = f"{current_streak}연승 달성!"
-                bonus_font = pygame.font.SysFont('malgungothic', 40, bold=True)
-                bonus_surface = bonus_font.render(bonus_msg, True, YELLOW)
-                screen.blit(bonus_surface, (WIDTH // 2 - bonus_surface.get_width() // 2, 420))
+            
         else:
             result_surface = TEXT_FONT.render(result_text, True, WHITE)
             screen.blit(result_surface, (WIDTH // 2 - result_surface.get_width() // 2, 280))
