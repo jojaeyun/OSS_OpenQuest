@@ -2,6 +2,7 @@ import pygame
 import sys
 import random
 import math
+import os
 
 # 초기화
 pygame.init()
@@ -30,6 +31,17 @@ font_main = pygame.font.Font(FONT_PATH, 50)
 font_small = pygame.font.Font(FONT_PATH, 15)
 font_info = pygame.font.Font(FONT_PATH, 20)
 font_result = pygame.font.Font(FONT_PATH, 25)
+
+# 최고점수 불러오기
+if os.path.exists("Breakout!/breakout_score.txt"):
+    f = open("Breakout!/breakout_score.txt", "r")
+    f_score = f.read().strip()
+    if f_score == "":
+        high = 0
+    else:
+        high = int(f_score)
+else:
+    high = 0
 
 # 점수(갱신 가능)
 global score
@@ -252,9 +264,15 @@ while running:
         pygame.draw.circle(screen, RED, (ball_x, ball_y), BALL_RADIUS)
 
     else:
+        # 최고점수 갱신
+        if score > high:
+            high = score
+            f = open("Breakout!/breakout_score.txt", "w")
+            f.write(str(high))
+
         # 결과 메시지 표시
         result = font_main.render(result_text, True, WHITE)
-        rect = result.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 130))
+        rect = result.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 180))
         screen.blit(result, rect)
 
         time = pygame.time.get_ticks()
@@ -263,10 +281,10 @@ while running:
 
         if result_text == "GAME OVER":
             final_text = font_result.render("Final Score", True, (150,150,150))
-            final_rect = final_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 20))
+            final_rect = final_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 40))
             screen.blit(final_text, final_rect)
             restart = font_small.render("Press ENTER to Restart", True, blink)
-            rect2 = restart.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 130))
+            rect2 = restart.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 180))
             screen.blit(restart, rect2)
             if (gameover_sound):
                 pygame.mixer.Sound("Breakout!/breakout_sound/gameover.wav").play()
@@ -274,18 +292,26 @@ while running:
 
         if result_text == "CLEAR!!":
             current_text = font_result.render("Current Score", True, (150,150,150))
-            current_rect = current_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 20))
+            current_rect = current_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 40))
             screen.blit(current_text, current_rect)
             restart = font_small.render("Press ENTER to Continue", True, blink)
-            rect2 = restart.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 130))
+            rect2 = restart.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 180))
             screen.blit(restart, rect2)
             if (clear_sound):
                 pygame.mixer.Sound("Breakout!/breakout_sound/clear.wav").play()
             clear_sound = False
 
         result_score = font_result.render(f"{score}", True, (150,150,150))
-        score_rect = result_score.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30))
+        score_rect = result_score.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 90))
         screen.blit(result_score, score_rect)
+
+        high_text = font_result.render("High Score", True, (200,200,200))
+        high_rect = high_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 80))
+        screen.blit(high_text, high_rect)
+
+        high_score = font_result.render(f"{high}", True, (200,200,200))
+        high_score_rect = high_score.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 30))
+        screen.blit(high_score, high_score_rect)
 
     # 화면 업데이트
     pygame.display.flip()
