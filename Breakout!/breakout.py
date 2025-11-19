@@ -71,7 +71,7 @@ def reset_game():
     paddle_x = (SCREEN_WIDTH - PADDLE_WIDTH) // 2
     paddle_y = SCREEN_HEIGHT - 30
 
-    stage = random.randint(0,4)
+    stage = random.randint(0,19)
 
     # 벽돌배치
     bricks = [] 
@@ -135,7 +135,153 @@ def reset_game():
                     bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))        
             if (col == 4 or col == 5):
                 for row in range(9):
-                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))                                                
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+    if (stage == 5):
+        for col in range(10):
+            for row in range(col):
+                bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT)) 
+    if (stage == 6):
+        for col in range(10):
+            for row in range(9-col):
+                bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT)) 
+    if (stage == 7):
+        for row in range(0,10,2):
+            for col in range(10):
+                bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))                                      
+    if (stage == 8):
+        for col in [0,2,7,9]:
+            for row in range(10):
+                bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+        for col in range(3,7):
+            for row in [0,9]:
+                bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+    if (stage == 9):
+        for row in range(10):
+            for col in range(10):
+                if (row == 4 or row == 5 or col == 4 or col == 5) and not(4 <= row <= 5 and 4 <= col <= 5):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+                if (1 <= row <= 2 and 1 <= col <= 2) or (7 <= row <= 8 and 7 <= col <= 8) or (1 <= row <= 2 and 7 <= col <= 8) or (7 <= row <= 8 and 1 <= col <= 2):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+    if (stage == 10):
+        for col in range(10):
+            if (col == 0 or col == 3 or col == 6 or col == 9):
+                for row in range(10):
+                    if (row < 4 or row > 5):
+                        bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+            if (col == 1 or col == 2 or col == 7 or col == 8):
+                for row in range(10):
+                    if (row == 0 or row == 3 or row == 6 or row == 9):
+                        bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))        
+            if (col == 4 or col == 5):
+                for row in range(4,6):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))      
+    if (stage == 11):
+        for col in range(1,10,2):
+            for row in range(9):
+                bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+        for col in [0,4,8]:
+            row = 0
+            bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))  
+        for col in [4,8]:
+            row = 8
+            bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT)) 
+    if (stage == 12):
+        for col in [0,1,2,6,7,8]:
+            for row in [0,1,5,6]:
+                bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+        for col in [3,9]:
+            for row in range(11):
+                bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))  
+    if (stage == 13):
+        for col in range(10):
+            if (col == 1 or col == 3 or col == 5 or col == 7):
+                for row in range(6,7):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+            if (col == 0):
+                for row in [5,7]:
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))        
+            if (col == 2 or col == 6):
+                for row in range(4,9):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))        
+            if (col == 4):
+                for row in range(3,10):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))        
+            if (col == 8):
+                for row in range(13):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))    
+            if (col == 9) :
+                for row in range(1,12):
+                    if (row != 4):
+                        bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))    
+    if (stage == 14):
+        for row in range(9):
+            if (row == 1 or row == 7):
+                for col in range(10):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+            if (row == 0 or row == 3 or row == 5 or row == 8):
+                for col in [1,3,6,8]:
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))        
+            if (row == 2 or row == 6):
+                for col in [0,4,5,9]:
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))              
+            if (row == 4):
+                for col in [2,7]:
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))   
+    if (stage == 15):
+        for col in range(10):
+            if (col == 0 or col == 9):
+                for row in range(20):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+            else:
+                for row in range(0,2):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT)) 
+    if (stage == 16):
+        for col in range(10):
+            if (col == 0 or col == 4 or col == 8):
+                for row in range(0,5):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+            if (col == 1 or col == 3 or col == 5 or col == 7 or col == 9):
+                for row in range(1,6):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))        
+            if (col == 2 or col == 6):
+                for row in range(2,7):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))   
+    if (stage == 17):
+        for col in range(10):
+            if (col % 2 == 0):
+                for row in range(0,5):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+            else:
+                for row in range(5,10):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))            
+    if (stage == 18):
+        for col in range(10):
+            if (col == 0 or col == 9):
+                for row in range(1):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+            if (col == 1 or col == 8):
+                for row in range(3):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))        
+            if (col == 2 or col == 7):
+                for row in range(5):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))        
+            if (col == 3 or col == 6):
+                for row in range(7):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))        
+            if (col == 4 or col == 5):
+                for row in range(9):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+    if (stage == 19):
+        for col in range(10):
+            if (col == 1 or col == 8):
+                for row in [0,1,6,7]:
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+            elif (col < 3 or col > 6):
+                for row in range(8):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+            else:
+                for row in range(3,5):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))        
 
     game_over = False
     result_text = ""
