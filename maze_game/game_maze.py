@@ -47,7 +47,7 @@ def find_path(maze, start, end):
 # ---------------- READY & GO 연출 ----------------
 def show_ready_go(screen, font_large, screen_w, screen_h):
     try:
-        ready_sound = pygame.mixer.Sound("gamestart.mp3")
+        ready_sound = pygame.mixer.Sound("maze_game/gamestart.mp3")
         ready_sound.play()
     except Exception:
         pass
@@ -83,11 +83,11 @@ def run_pygame(difficulty=None):
     pygame.mixer.init()
 
     try:
-        wall_hit_sound = pygame.mixer.Sound("wall_hit.wav")
+        wall_hit_sound = pygame.mixer.Sound("maze_game/wall_hit.wav")
     except Exception:
         wall_hit_sound = None
 
-    FONT_PATH = "PressStart2P-Regular.ttf"
+    FONT_PATH = "./fonts/PressStart2P-Regular.ttf"
     try:
         font_small = pygame.font.Font(FONT_PATH, 24)
         font_large = pygame.font.Font(FONT_PATH, 60)
@@ -135,8 +135,17 @@ def run_pygame(difficulty=None):
             enemy_count, item_count, enemy_speed = 3, 5, 3.3
 
         # ---------------- 게임 로직 초기화 ----------------
-        ROWS, COLS = 21, 31
-        TILE_SIZE = min(SCREEN_WIDTH // COLS, SCREEN_HEIGHT // ROWS)
+        SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
+        TILE_SIZE = 24
+        COLS = SCREEN_WIDTH // TILE_SIZE
+        ROWS = SCREEN_HEIGHT // TILE_SIZE
+        if ROWS % 2 == 0: ROWS -= 1
+        if COLS % 2 == 0: COLS -= 1
+
+        TILE_SIZE_W = SCREEN_WIDTH / COLS
+        TILE_SIZE_H = SCREEN_HEIGHT / ROWS
+        TILE_SIZE = int(min(TILE_SIZE_W, TILE_SIZE_H))
+
         maze = generate_maze(ROWS, COLS)
         player_x, player_y = TILE_SIZE, TILE_SIZE
         player_vx, player_vy = 0, 0
@@ -307,13 +316,13 @@ def run_pygame(difficulty=None):
             # 승리/패배 사운드 재생
             if won and not victory_sound_played:
                 try:
-                    pygame.mixer.Sound("victory.mp3").play()
+                    pygame.mixer.Sound("maze_game/victory.mp3").play()
                 except Exception:
                     pass
                 victory_sound_played = True
             elif not won and not defeat_sound_played:
                 try:
-                    pygame.mixer.Sound("defeat.mp3").play()
+                    pygame.mixer.Sound("maze_game/defeat.mp3").play()
                 except Exception:
                     pass
                 defeat_sound_played = True

@@ -8,7 +8,7 @@ pygame.mixer.init()  # 사운드 초기화
 
 WIDTH, HEIGHT = 800, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("미니게임 선택")
+pygame.display.set_caption("미니게임 선 택")
 
 # 🎮 아케이드 폰트 적용
 FONT_PATH = "./fonts/PressStart2P-Regular.ttf"
