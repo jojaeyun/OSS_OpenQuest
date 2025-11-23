@@ -97,7 +97,8 @@ def run_pygame(difficulty=None):
 
     SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption("네온 미로 아케이드")
+
+    pygame.display.set_caption("아케이드 미로 게임")
     clock = pygame.time.Clock()
 
     while True:
@@ -136,7 +137,8 @@ def run_pygame(difficulty=None):
 
         # ---------------- 게임 로직 초기화 ----------------
         SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
-        TILE_SIZE = 24
+        TILE_SIZE = 24  # --- 수정됨: 기본 타일 크기 (조정 가능) ---
+
         COLS = SCREEN_WIDTH // TILE_SIZE
         ROWS = SCREEN_HEIGHT // TILE_SIZE
         if ROWS % 2 == 0: ROWS -= 1
@@ -316,13 +318,13 @@ def run_pygame(difficulty=None):
             # 승리/패배 사운드 재생
             if won and not victory_sound_played:
                 try:
-                    pygame.mixer.Sound("maze_game/victory.mp3").play()
+                    pygame.mixer.Sound("victory.mp3").play()
                 except Exception:
                     pass
                 victory_sound_played = True
             elif not won and not defeat_sound_played:
                 try:
-                    pygame.mixer.Sound("maze_game/defeat.mp3").play()
+                    pygame.mixer.Sound("defeat.mp3").play()
                 except Exception:
                     pass
                 defeat_sound_played = True
