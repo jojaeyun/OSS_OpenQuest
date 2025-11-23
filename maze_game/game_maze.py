@@ -97,11 +97,7 @@ def run_pygame(difficulty=None):
 
     SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-<<<<<<< HEAD
     pygame.display.set_caption("네온 미로 아케이드")
-=======
-    pygame.display.set_caption("아케이드 미로 게임")
->>>>>>> origin/feature/game-maze-new
     clock = pygame.time.Clock()
 
     while True:
@@ -140,7 +136,6 @@ def run_pygame(difficulty=None):
 
         # ---------------- 게임 로직 초기화 ----------------
         SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
-<<<<<<< HEAD
         TILE_SIZE = 24
         COLS = SCREEN_WIDTH // TILE_SIZE
         ROWS = SCREEN_HEIGHT // TILE_SIZE
@@ -158,26 +153,6 @@ def run_pygame(difficulty=None):
         exit_row, exit_col = ROWS - 2, COLS - 2
         maze[exit_row][exit_col] = 0
 
-=======
-        TILE_SIZE = 24  # --- 수정됨: 기본 타일 크기 (조정 가능) ---
-
-        COLS = SCREEN_WIDTH // TILE_SIZE
-        ROWS = SCREEN_HEIGHT // TILE_SIZE
-        if ROWS % 2 == 0: ROWS -= 1
-        if COLS % 2 == 0: COLS -= 1
-
-        TILE_SIZE_W = SCREEN_WIDTH / COLS
-        TILE_SIZE_H = SCREEN_HEIGHT / ROWS
-        TILE_SIZE = int(min(TILE_SIZE_W, TILE_SIZE_H))
-
-        maze = generate_maze(ROWS, COLS)
-        player_x, player_y = TILE_SIZE, TILE_SIZE
-        player_vx, player_vy = 0, 0
-        player_accel, player_max_speed = 0.6, 4.5
-        exit_row, exit_col = ROWS - 2, COLS - 2
-        maze[exit_row][exit_col] = 0
-
->>>>>>> origin/feature/game-maze-new
         # ---------------- 적 초기화 ----------------
         enemies = []
         for _ in range(enemy_count):
@@ -341,21 +316,13 @@ def run_pygame(difficulty=None):
             # 승리/패배 사운드 재생
             if won and not victory_sound_played:
                 try:
-<<<<<<< HEAD
                     pygame.mixer.Sound("maze_game/victory.mp3").play()
-=======
-                    pygame.mixer.Sound("victory.mp3").play()
->>>>>>> origin/feature/game-maze-new
                 except Exception:
                     pass
                 victory_sound_played = True
             elif not won and not defeat_sound_played:
                 try:
-<<<<<<< HEAD
                     pygame.mixer.Sound("maze_game/defeat.mp3").play()
-=======
-                    pygame.mixer.Sound("defeat.mp3").play()
->>>>>>> origin/feature/game-maze-new
                 except Exception:
                     pass
                 defeat_sound_played = True
