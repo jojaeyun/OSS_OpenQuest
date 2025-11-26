@@ -194,21 +194,21 @@ while running:
 
     # 제목
     title_surface = font_title.render("ROCK PAPER SCISSORS", True, BLUE)
-    screen.blit(title_surface, (WIDTH // 2 - title_surface.get_width() // 2, 20))
+    screen.blit(title_surface, (WIDTH // 2 - title_surface.get_width() // 2, 40))
 
     # 연승 표시
     streak_text = font_small.render(f"STREAK {current_streak}   BEST {max_streak}", True, WHITE)
     screen.blit(streak_text, (60, 150))
 
     # 체력바 표시
-    pygame.draw.rect(screen, DARK_GRAY, (60, 240, 250, 25), border_radius=10)
-    pygame.draw.rect(screen, DARK_GRAY, (WIDTH - 315, 240, 250, 25), border_radius=10)
+    pygame.draw.rect(screen, DARK_GRAY, (60, 230, 250, 25), border_radius=10)
+    pygame.draw.rect(screen, DARK_GRAY, (WIDTH - 315, 230, 250, 25), border_radius=10)
 
     player_bar_width = int(250 * (player_hp / 100))
     computer_bar_width = int(250 * (computer_hp / 100))
 
-    pygame.draw.rect(screen, GREEN, (60, 240, player_bar_width, 25), border_radius=10)
-    pygame.draw.rect(screen, RED, (WIDTH - 315 + (250 - computer_bar_width), 240, computer_bar_width, 25), border_radius=10)
+    pygame.draw.rect(screen, GREEN, (60, 230, player_bar_width, 25), border_radius=10)
+    pygame.draw.rect(screen, RED, (WIDTH - 315 + (250 - computer_bar_width), 230, computer_bar_width, 25), border_radius=10)
 
     player_name = font_small.render("PLAYER", True, WHITE)
     comp_name = font_small.render("COMPUTER", True, WHITE)
