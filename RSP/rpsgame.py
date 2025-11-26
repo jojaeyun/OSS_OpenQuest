@@ -158,11 +158,11 @@ while running:
                                 result_text = "WIN"
                                 current_streak += 1
                                 max_streak = max(max_streak, current_streak)
-                                computer_hp -= 20
+                                computer_hp -= 10
                             else:
                                 result_text = "LOSE"
                                 current_streak = 0
-                                player_hp -= 20
+                                player_hp -= 10
 
                             if player_hp <= 0 or computer_hp <= 0:
                                 game_over = True
