@@ -4,6 +4,7 @@ import random
 import math
 from collections import deque
 import time
+
 # ---------------- 미로 생성 ----------------
 def generate_maze(rows, cols):
     maze = [[1 for _ in range(cols)] for _ in range(rows)]
@@ -81,10 +82,31 @@ def run_pygame(difficulty=None):
     pygame.init()
     pygame.mixer.init()
 
+    # ---------------- 사운드 로드 ----------------
     try:
         wall_hit_sound = pygame.mixer.Sound("maze_game/wall_hit.wav")
     except Exception:
         wall_hit_sound = None
+
+    try:
+        item_pickup_sound = pygame.mixer.Sound("maze_game/item_pickup.mp3")
+    except Exception:
+        item_pickup_sound = None
+
+    try:
+        moving_sound = pygame.mixer.Sound("maze_game/moving.mp3")
+        moving_sound.set_volume(0.2)
+        moving_channel = pygame.mixer.Channel(5)
+    except Exception:
+        moving_sound = None
+        moving_channel = None
+
+    try:
+        victory_sound = pygame.mixer.Sound("maze_game/victory.mp3")
+        defeat_sound = pygame.mixer.Sound("maze_game/defeat.mp3")
+    except Exception:
+        victory_sound = None
+        defeat_sound = None
 
     FONT_PATH = "./fonts/PressStart2P-Regular.ttf"
     try:
@@ -106,7 +128,6 @@ def run_pygame(difficulty=None):
         print("플레이어 이미지 로드 실패:", e)
         player_img = None
 
-    # 적 이미지 3종 로드
     enemy_imgs_all = []
     for i in range(1, 4):
         try:
@@ -119,7 +140,6 @@ def run_pygame(difficulty=None):
         enemy_imgs_all = [None]
 
     while True:
-        # ---------------- 난이도 선택 ----------------
         if difficulty is None:
             choosing = True
             while choosing:
@@ -144,15 +164,13 @@ def run_pygame(difficulty=None):
 
         show_ready_go(screen, font_large, SCREEN_WIDTH, SCREEN_HEIGHT)
 
-        # ---------------- BGM 재생 ----------------
         try:
             pygame.mixer.music.load("maze_game/bgm.mp3")
-            pygame.mixer.music.set_volume(0.6)
+            pygame.mixer.music.set_volume(0.4)
             pygame.mixer.music.play(-1)
         except Exception as e:
             print("BGM 로드 실패:", e)
 
-        # ---------------- 난이도별 설정 ----------------
         if difficulty == "easy":
             enemy_count, item_count, enemy_speed, enemy_img_count = 1, 8, 2.2, 1
         elif difficulty == "normal":
@@ -162,7 +180,6 @@ def run_pygame(difficulty=None):
 
         enemy_imgs = enemy_imgs_all[:enemy_img_count]
 
-        # ---------------- 게임 로직 초기화 ----------------
         TILE_SIZE = 24
         COLS = SCREEN_WIDTH // TILE_SIZE
         ROWS = SCREEN_HEIGHT // TILE_SIZE
@@ -183,31 +200,20 @@ def run_pygame(difficulty=None):
         if player_img:
             player_img = pygame.transform.scale(player_img, (TILE_SIZE, TILE_SIZE))
         enemy_imgs = [pygame.transform.scale(img, (TILE_SIZE, TILE_SIZE)) for img in enemy_imgs if img]
-        player_angle = 0  # 오른쪽이 기본
+        player_angle = 0
 
-        # ---------------- 적 초기화 ----------------
         enemies = []
         for _ in range(enemy_count):
             while True:
                 r, c = random.randint(ROWS//2, ROWS-2), random.randint(COLS//2, COLS-2)
                 if maze[r][c] == 0:
                     enemy_img = random.choice(enemy_imgs) if enemy_imgs else None
-                    enemies.append({
-                        "x": c*TILE_SIZE,
-                        "y": r*TILE_SIZE,
-                        "path": [],
-                        "disabled": False,
-                        "timer": 0,
-                        "path_timer": 0,
-                        "img": enemy_img
-                    })
+                    enemies.append({"x": c*TILE_SIZE,"y": r*TILE_SIZE,"path": [],"disabled": False,"timer": 0,"path_timer": 0,"img": enemy_img})
                     break
 
-        # ---------------- 아이템 초기화 ----------------
         items = []
         while True:
-            r = random.randint(1, 3)
-            c = random.randint(1, 3)
+            r, c = random.randint(1, 3), random.randint(1, 3)
             if maze[r][c] == 0:
                 items.append((r, c))
                 break
@@ -240,16 +246,19 @@ def run_pygame(difficulty=None):
                     pygame.quit(); sys.exit()
                 elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     pygame.mixer.music.stop()
+                    if moving_channel:
+                        moving_channel.stop()
                     return run_pygame(difficulty=None)
 
             keys = pygame.key.get_pressed()
+            moving = keys[pygame.K_LEFT] or keys[pygame.K_RIGHT] or keys[pygame.K_UP] or keys[pygame.K_DOWN]
+
             if keys[pygame.K_LEFT]: player_vx -= player_accel
             if keys[pygame.K_RIGHT]: player_vx += player_accel
             if keys[pygame.K_UP]: player_vy -= player_accel
             if keys[pygame.K_DOWN]: player_vy += player_accel
 
-            move_dir_x = 0
-            move_dir_y = 0
+            move_dir_x = 0; move_dir_y = 0
             if keys[pygame.K_LEFT]: move_dir_x = -1
             elif keys[pygame.K_RIGHT]: move_dir_x = 1
             if keys[pygame.K_UP]: move_dir_y = -1
@@ -274,11 +283,21 @@ def run_pygame(difficulty=None):
                 player_vy = 0
                 if wall_hit_sound: wall_hit_sound.play()
 
+            # ---------------- 움직임 사운드 ----------------
+            if moving and moving_channel and not moving_channel.get_busy():
+                moving_channel.play(moving_sound)
+            elif not moving and moving_channel:
+                moving_channel.stop()
+
             player_row, player_col = int(player_y // TILE_SIZE), int(player_x // TILE_SIZE)
 
             for item in items[:]:
                 if (player_row, player_col) == item:
                     items.remove(item)
+                    if item_pickup_sound:
+                        ch = pygame.mixer.find_channel()
+                        if ch:  
+                            ch.play(item_pickup_sound)
                     for e in enemies:
                         e["disabled"] = True
                         e["timer"] = disable_duration
@@ -349,6 +368,15 @@ def run_pygame(difficulty=None):
 
         # ---------------- 게임 종료 화면 ----------------
         pygame.mixer.music.stop()
+        if moving_channel:
+            moving_channel.stop()
+
+        # 승리/패배 사운드
+        if won and victory_sound:
+            pygame.mixer.Channel(6).play(victory_sound)
+        elif not won and defeat_sound:
+            pygame.mixer.Channel(7).play(defeat_sound)
+
         victory_sound_played = False
         defeat_sound_played = False
         while True:
