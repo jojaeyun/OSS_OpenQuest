@@ -4,7 +4,6 @@ import random
 import math
 from collections import deque
 import time
-
 # ---------------- 미로 생성 ----------------
 def generate_maze(rows, cols):
     maze = [[1 for _ in range(cols)] for _ in range(rows)]
@@ -102,7 +101,7 @@ def run_pygame(difficulty=None):
 
     # ---------------- 이미지 로드 ----------------
     try:
-        player_img = pygame.image.load("maze_game/pac-man_image_16719446.png").convert_alpha()
+        player_img = pygame.image.load("maze_game/player.png").convert_alpha()
     except Exception as e:
         print("플레이어 이미지 로드 실패:", e)
         player_img = None
@@ -117,7 +116,7 @@ def run_pygame(difficulty=None):
             print(f"enemy{i}.png 로드 실패:", e)
 
     if not enemy_imgs_all:
-        enemy_imgs_all = [None]  # 예외 대비용
+        enemy_imgs_all = [None]
 
     while True:
         # ---------------- 난이도 선택 ----------------
@@ -145,6 +144,14 @@ def run_pygame(difficulty=None):
 
         show_ready_go(screen, font_large, SCREEN_WIDTH, SCREEN_HEIGHT)
 
+        # ---------------- BGM 재생 ----------------
+        try:
+            pygame.mixer.music.load("maze_game/bgm.mp3")
+            pygame.mixer.music.set_volume(0.6)
+            pygame.mixer.music.play(-1)
+        except Exception as e:
+            print("BGM 로드 실패:", e)
+
         # ---------------- 난이도별 설정 ----------------
         if difficulty == "easy":
             enemy_count, item_count, enemy_speed, enemy_img_count = 1, 8, 2.2, 1
@@ -153,7 +160,6 @@ def run_pygame(difficulty=None):
         else:
             enemy_count, item_count, enemy_speed, enemy_img_count = 3, 5, 3.3, 3
 
-        # 사용할 적 이미지 제한 (enemy1 ~ enemyN)
         enemy_imgs = enemy_imgs_all[:enemy_img_count]
 
         # ---------------- 게임 로직 초기화 ----------------
@@ -174,10 +180,10 @@ def run_pygame(difficulty=None):
         exit_row, exit_col = ROWS - 2, COLS - 2
         maze[exit_row][exit_col] = 0
 
-        # 타일 크기에 맞게 이미지 스케일 조정
         if player_img:
             player_img = pygame.transform.scale(player_img, (TILE_SIZE, TILE_SIZE))
         enemy_imgs = [pygame.transform.scale(img, (TILE_SIZE, TILE_SIZE)) for img in enemy_imgs if img]
+        player_angle = 0  # 오른쪽이 기본
 
         # ---------------- 적 초기화 ----------------
         enemies = []
@@ -212,13 +218,6 @@ def run_pygame(difficulty=None):
                     items.append((r, c))
                     break
 
-        WALL_COLOR = (0,0,0)
-        PATH_COLOR = (70,70,70)
-        PLAYER_COLOR = (0,255,255)
-        EXIT_COLOR = (50,255,100)
-        ENEMY_COLOR = (255,50,255)
-        ITEM_COLOR = (255,255,100)
-
         def rect_can_move(x, y):
             rect = pygame.Rect(x, y, TILE_SIZE, TILE_SIZE)
             for r in range(ROWS):
@@ -240,6 +239,7 @@ def run_pygame(difficulty=None):
                 if event.type == pygame.QUIT:
                     pygame.quit(); sys.exit()
                 elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    pygame.mixer.music.stop()
                     return run_pygame(difficulty=None)
 
             keys = pygame.key.get_pressed()
@@ -248,13 +248,21 @@ def run_pygame(difficulty=None):
             if keys[pygame.K_UP]: player_vy -= player_accel
             if keys[pygame.K_DOWN]: player_vy += player_accel
 
+            move_dir_x = 0
+            move_dir_y = 0
+            if keys[pygame.K_LEFT]: move_dir_x = -1
+            elif keys[pygame.K_RIGHT]: move_dir_x = 1
+            if keys[pygame.K_UP]: move_dir_y = -1
+            elif keys[pygame.K_DOWN]: move_dir_y = 1
+            if move_dir_x != 0 or move_dir_y != 0:
+                player_angle = -math.degrees(math.atan2(move_dir_y, move_dir_x))
+
             player_vx *= 0.9; player_vy *= 0.9
             player_vx = max(-player_max_speed, min(player_max_speed, player_vx))
             player_vy = max(-player_max_speed, min(player_max_speed, player_vy))
 
             new_x, new_y = player_x + player_vx, player_y + player_vy
 
-            # 벽 충돌
             if rect_can_move(new_x, player_y):
                 player_x = new_x
             else:
@@ -310,30 +318,29 @@ def run_pygame(difficulty=None):
             screen.fill((0, 0, 0))
             for r in range(ROWS):
                 for c in range(COLS):
-                    color = WALL_COLOR if maze[r][c] == 1 else PATH_COLOR
+                    color = (0,0,0) if maze[r][c]==1 else (70,70,70)
                     pygame.draw.rect(screen, color, (c*TILE_SIZE, r*TILE_SIZE, TILE_SIZE, TILE_SIZE))
 
             for (r,c) in items:
-                pygame.draw.rect(screen, ITEM_COLOR, (c*TILE_SIZE+TILE_SIZE//4, r*TILE_SIZE+TILE_SIZE//4, TILE_SIZE//2, TILE_SIZE//2))
+                pygame.draw.rect(screen, (255,255,100), (c*TILE_SIZE+TILE_SIZE//4, r*TILE_SIZE+TILE_SIZE//4, TILE_SIZE//2, TILE_SIZE//2))
 
-            pygame.draw.rect(screen, EXIT_COLOR, (exit_col*TILE_SIZE, exit_row*TILE_SIZE, TILE_SIZE, TILE_SIZE))
+            pygame.draw.rect(screen, (50,255,100), (exit_col*TILE_SIZE, exit_row*TILE_SIZE, TILE_SIZE, TILE_SIZE))
 
-            # 적 렌더링
             for e in enemies:
                 if e["img"]:
                     img = e["img"].copy()
-                    if e["disabled"]:
-                        img.set_alpha(100)
+                    if e["disabled"]: img.set_alpha(100)
                     screen.blit(img, (e["x"], e["y"]))
                 else:
-                    color = (100,100,100) if e["disabled"] else ENEMY_COLOR
+                    color = (100,100,100) if e["disabled"] else (255,50,255)
                     pygame.draw.rect(screen, color, (e["x"], e["y"], TILE_SIZE, TILE_SIZE))
 
-            # 플레이어 렌더링
             if player_img:
-                screen.blit(player_img, (player_x, player_y))
+                rotated_img = pygame.transform.rotate(player_img, player_angle)
+                rect = rotated_img.get_rect(center=(player_x + TILE_SIZE/2, player_y + TILE_SIZE/2))
+                screen.blit(rotated_img, rect.topleft)
             else:
-                pygame.draw.rect(screen, PLAYER_COLOR, (player_x, player_y, TILE_SIZE, TILE_SIZE))
+                pygame.draw.rect(screen, (0,255,255), (player_x, player_y, TILE_SIZE, TILE_SIZE))
 
             hud = font_small.render(f"ITEMS LEFT: {len(items)}", True, (255,255,255))
             screen.blit(hud, (10,10))
@@ -341,6 +348,7 @@ def run_pygame(difficulty=None):
             clock.tick(60)
 
         # ---------------- 게임 종료 화면 ----------------
+        pygame.mixer.music.stop()
         victory_sound_played = False
         defeat_sound_played = False
         while True:
