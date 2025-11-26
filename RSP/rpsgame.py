@@ -168,11 +168,11 @@ while running:
                                 result_text = "WIN!"
                                 current_streak += 1
                                 max_streak = max(max_streak, current_streak)
-                                computer_hp -= 20
+                                computer_hp -= 10
                             else:
                                 result_text = "LOSE!"
                                 current_streak = 0
-                                player_hp -= 20
+                                player_hp -= 10
 
                             # 체력이 0 이하이면 즉시 게임 종료
                             if player_hp <= 0 or computer_hp <= 0:
@@ -212,14 +212,14 @@ while running:
     screen.blit(streak_text, (50, 150))
 
     # 체력바 표시
-    pygame.draw.rect(screen, DARK_GRAY, (60, 240, 250, 25), border_radius=10)
-    pygame.draw.rect(screen, DARK_GRAY, (WIDTH - 315, 240, 250, 25), border_radius=10)
+    pygame.draw.rect(screen, DARK_GRAY, (60, 230, 250, 25), border_radius=10)
+    pygame.draw.rect(screen, DARK_GRAY, (WIDTH - 315, 230, 250, 25), border_radius=10)
 
     player_bar_width = int(250 * (player_hp / 100))
     computer_bar_width = int(250 * (computer_hp / 100))
 
-    pygame.draw.rect(screen, GREEN, (60, 240, player_bar_width, 25), border_radius=10)
-    pygame.draw.rect(screen, RED, (WIDTH - 315 + (250 - computer_bar_width), 240, computer_bar_width, 25), border_radius=10)
+    pygame.draw.rect(screen, GREEN, (60, 230, player_bar_width, 25), border_radius=10)
+    pygame.draw.rect(screen, RED, (WIDTH - 315 + (250 - computer_bar_width), 230, computer_bar_width, 25), border_radius=10)
 
     player_name = SMALL_FONT.render("플레이어", True, WHITE)
     comp_name = SMALL_FONT.render("컴퓨터", True, WHITE)
