@@ -24,6 +24,7 @@ font_success = pygame.font.Font(FONT_PATH, 40)
 font_fail = pygame.font.Font(FONT_PATH, 50)
 font_fail_word = pygame.font.Font(FONT_PATH, 25)
 font_restart = pygame.font.Font(FONT_PATH, 15)
+font_quit = pygame.font.Font(FONT_PATH, 18)
 
 # 힌트 알파벳 생성 함수
 def hint():
@@ -74,7 +75,7 @@ def draw_guessed(guessed):
 
 # 게임 초기화 함수
 def reset_game():
-    global running, clock, word, guessed, wrong, MAX_TRIES, win, lose, hint_letters, hint_3, hint_5, win_sound, lose_sound
+    global running, clock, word, guessed, wrong, MAX_TRIES, win, lose, hint_letters, hint_3, hint_5, win_sound, lose_sound, show_quit_text
 
     running = True
     clock = pygame.time.Clock()
@@ -89,6 +90,10 @@ def reset_game():
     lose_sound = True
     hint_3 = False
     hint_5 = False
+    show_quit_text = False
+
+esc_pressed_time = None     # esc 누른 시간
+ESC_HOLD_DURATION = 3000    # 눌러야 하는 시간 (3초)
 
 reset_game() # 최초 초기화 실행
 
@@ -107,7 +112,16 @@ while running:
         for event in pygame.event.get():    # 키보드 입력
             if event.type == pygame.QUIT:
                 running = False
-
+            # esc 누름
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    esc_pressed_time = pygame.time.get_ticks()
+                    show_quit_text = True
+            # esc 뗌
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_ESCAPE:
+                    esc_pressed_time = None
+                    show_quit_text = False
             # 엔터키로 재시작
             if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
                 reset_game()
@@ -135,6 +149,16 @@ while running:
                     # 기회 소진 시 실패
                     elif wrong >= MAX_TRIES:
                         lose = True
+        # esc 누름
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                esc_pressed_time = pygame.time.get_ticks()
+                show_quit_text = True
+        # esc 뗌
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_ESCAPE:
+                esc_pressed_time = None
+                show_quit_text = False
 
     if wrong == 3 and not hint_3:   # 첫번째 힌트 (3회)
         hint_3 = True
@@ -171,6 +195,15 @@ while running:
         if (lose_sound):
             pygame.mixer.Sound("hangman/hangman_sound/fail.wav").play()
         lose_sound = False
+
+    if show_quit_text:  # 종료문구 표시
+        quit_text = font_quit.render("quit...", True, (100,100,100))
+        quit_rect = quit_text.get_rect(center=(80, 20))
+        screen.blit(quit_text, quit_rect)
+
+    if esc_pressed_time is not None:    # 게임종료
+        if pygame.time.get_ticks() - esc_pressed_time >= ESC_HOLD_DURATION:
+            running = False
 
     pygame.display.flip()
     clock.tick(30)
