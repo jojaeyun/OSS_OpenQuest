@@ -100,6 +100,25 @@ def run_pygame(difficulty=None):
     pygame.display.set_caption("아케이드 미로 게임")
     clock = pygame.time.Clock()
 
+    # ---------------- 이미지 로드 ----------------
+    try:
+        player_img = pygame.image.load("maze_game/pac-man_image_16719446.png").convert_alpha()
+    except Exception as e:
+        print("플레이어 이미지 로드 실패:", e)
+        player_img = None
+
+    # 적 이미지 3종 로드
+    enemy_imgs_all = []
+    for i in range(1, 4):
+        try:
+            img = pygame.image.load(f"maze_game/enemy{i}.png").convert_alpha()
+            enemy_imgs_all.append(img)
+        except Exception as e:
+            print(f"enemy{i}.png 로드 실패:", e)
+
+    if not enemy_imgs_all:
+        enemy_imgs_all = [None]  # 예외 대비용
+
     while True:
         # ---------------- 난이도 선택 ----------------
         if difficulty is None:
@@ -128,16 +147,17 @@ def run_pygame(difficulty=None):
 
         # ---------------- 난이도별 설정 ----------------
         if difficulty == "easy":
-            enemy_count, item_count, enemy_speed = 1, 8, 2.2
+            enemy_count, item_count, enemy_speed, enemy_img_count = 1, 8, 2.2, 1
         elif difficulty == "normal":
-            enemy_count, item_count, enemy_speed = 2, 6, 2.8
+            enemy_count, item_count, enemy_speed, enemy_img_count = 2, 6, 2.8, 2
         else:
-            enemy_count, item_count, enemy_speed = 3, 5, 3.3
+            enemy_count, item_count, enemy_speed, enemy_img_count = 3, 5, 3.3, 3
+
+        # 사용할 적 이미지 제한 (enemy1 ~ enemyN)
+        enemy_imgs = enemy_imgs_all[:enemy_img_count]
 
         # ---------------- 게임 로직 초기화 ----------------
-        SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
-        TILE_SIZE = 24  # --- 수정됨: 기본 타일 크기 (조정 가능) ---
-
+        TILE_SIZE = 24
         COLS = SCREEN_WIDTH // TILE_SIZE
         ROWS = SCREEN_HEIGHT // TILE_SIZE
         if ROWS % 2 == 0: ROWS -= 1
@@ -154,27 +174,37 @@ def run_pygame(difficulty=None):
         exit_row, exit_col = ROWS - 2, COLS - 2
         maze[exit_row][exit_col] = 0
 
+        # 타일 크기에 맞게 이미지 스케일 조정
+        if player_img:
+            player_img = pygame.transform.scale(player_img, (TILE_SIZE, TILE_SIZE))
+        enemy_imgs = [pygame.transform.scale(img, (TILE_SIZE, TILE_SIZE)) for img in enemy_imgs if img]
+
         # ---------------- 적 초기화 ----------------
         enemies = []
         for _ in range(enemy_count):
             while True:
                 r, c = random.randint(ROWS//2, ROWS-2), random.randint(COLS//2, COLS-2)
                 if maze[r][c] == 0:
-                    enemies.append({"x": c*TILE_SIZE, "y": r*TILE_SIZE, "path": [], "disabled": False, "timer": 0, "path_timer": 0})
+                    enemy_img = random.choice(enemy_imgs) if enemy_imgs else None
+                    enemies.append({
+                        "x": c*TILE_SIZE,
+                        "y": r*TILE_SIZE,
+                        "path": [],
+                        "disabled": False,
+                        "timer": 0,
+                        "path_timer": 0,
+                        "img": enemy_img
+                    })
                     break
 
-        # ---------------- 아이템 초기화 (플레이어 근처 최소 1개) ----------------
+        # ---------------- 아이템 초기화 ----------------
         items = []
-
-        # 1️⃣ 플레이어 근처에 최소 1개 아이템
         while True:
             r = random.randint(1, 3)
             c = random.randint(1, 3)
             if maze[r][c] == 0:
                 items.append((r, c))
                 break
-
-        # 나머지 아이템
         for _ in range(item_count - 1):
             while True:
                 r, c = random.randint(1, ROWS-2), random.randint(1, COLS-2)
@@ -210,7 +240,6 @@ def run_pygame(difficulty=None):
                 if event.type == pygame.QUIT:
                     pygame.quit(); sys.exit()
                 elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                # ESC 누르면 바로 난이도 선택 화면으로 돌아가기
                     return run_pygame(difficulty=None)
 
             keys = pygame.key.get_pressed()
@@ -225,19 +254,17 @@ def run_pygame(difficulty=None):
 
             new_x, new_y = player_x + player_vx, player_y + player_vy
 
-            # ---------------- 벽 충돌 & 소리 ----------------
+            # 벽 충돌
             if rect_can_move(new_x, player_y):
                 player_x = new_x
             else:
                 player_vx = 0
-                if wall_hit_sound:
-                    wall_hit_sound.play()
+                if wall_hit_sound: wall_hit_sound.play()
             if rect_can_move(player_x, new_y):
                 player_y = new_y
             else:
                 player_vy = 0
-                if wall_hit_sound:
-                    wall_hit_sound.play()
+                if wall_hit_sound: wall_hit_sound.play()
 
             player_row, player_col = int(player_y // TILE_SIZE), int(player_x // TILE_SIZE)
 
@@ -264,7 +291,6 @@ def run_pygame(difficulty=None):
                     dist = max(1, math.hypot(dir_x, dir_y))
                     move_x = enemy_speed * dir_x / dist
                     move_y = enemy_speed * dir_y / dist
-                    # 벽 체크 후 이동
                     if rect_can_move(e["x"] + move_x, e["y"]):
                         e["x"] += move_x
                     if rect_can_move(e["x"], e["y"] + move_y):
@@ -286,13 +312,29 @@ def run_pygame(difficulty=None):
                 for c in range(COLS):
                     color = WALL_COLOR if maze[r][c] == 1 else PATH_COLOR
                     pygame.draw.rect(screen, color, (c*TILE_SIZE, r*TILE_SIZE, TILE_SIZE, TILE_SIZE))
+
             for (r,c) in items:
                 pygame.draw.rect(screen, ITEM_COLOR, (c*TILE_SIZE+TILE_SIZE//4, r*TILE_SIZE+TILE_SIZE//4, TILE_SIZE//2, TILE_SIZE//2))
+
             pygame.draw.rect(screen, EXIT_COLOR, (exit_col*TILE_SIZE, exit_row*TILE_SIZE, TILE_SIZE, TILE_SIZE))
+
+            # 적 렌더링
             for e in enemies:
-                color = (100,100,100) if e["disabled"] else ENEMY_COLOR
-                pygame.draw.rect(screen, color, (e["x"], e["y"], TILE_SIZE, TILE_SIZE))
-            pygame.draw.rect(screen, PLAYER_COLOR, (player_x, player_y, TILE_SIZE, TILE_SIZE))
+                if e["img"]:
+                    img = e["img"].copy()
+                    if e["disabled"]:
+                        img.set_alpha(100)
+                    screen.blit(img, (e["x"], e["y"]))
+                else:
+                    color = (100,100,100) if e["disabled"] else ENEMY_COLOR
+                    pygame.draw.rect(screen, color, (e["x"], e["y"], TILE_SIZE, TILE_SIZE))
+
+            # 플레이어 렌더링
+            if player_img:
+                screen.blit(player_img, (player_x, player_y))
+            else:
+                pygame.draw.rect(screen, PLAYER_COLOR, (player_x, player_y, TILE_SIZE, TILE_SIZE))
+
             hud = font_small.render(f"ITEMS LEFT: {len(items)}", True, (255,255,255))
             screen.blit(hud, (10,10))
             pygame.display.flip()
@@ -307,7 +349,6 @@ def run_pygame(difficulty=None):
             text = font_large.render(msg, True, (50,255,50) if won else (255,80,80))
             screen.blit(text, (SCREEN_WIDTH//2 - text.get_width()//2, 150))
 
-            # 버튼
             main_btn = pygame.Rect(SCREEN_WIDTH//2 - 150, 300, 300, 60)
             retry_btn = pygame.Rect(SCREEN_WIDTH//2 - 150, 380, 300, 60)
             quit_btn = pygame.Rect(SCREEN_WIDTH//2 - 150, 460, 300, 60)
@@ -317,7 +358,6 @@ def run_pygame(difficulty=None):
             draw_button(screen, quit_btn, "QUIT", font_small, (200,50,50), (255,255,255))
             pygame.display.flip()
 
-            # 승리/패배 사운드 재생
             if won and not victory_sound_played:
                 try:
                     pygame.mixer.Sound("victory.mp3").play()
@@ -344,7 +384,7 @@ def run_pygame(difficulty=None):
                         pygame.quit(); sys.exit()
             else:
                 continue
-            break  # main_btn 클릭 시 while 루프 탈출, 난이도 선택 화면으로 돌아감
+            break
 
 if __name__ == "__main__":
     run_pygame()
