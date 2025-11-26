@@ -2,6 +2,7 @@ import pygame
 import sys
 import random
 import math
+import os
 
 # 초기화
 pygame.init()
@@ -30,6 +31,18 @@ font_main = pygame.font.Font(FONT_PATH, 50)
 font_small = pygame.font.Font(FONT_PATH, 15)
 font_info = pygame.font.Font(FONT_PATH, 20)
 font_result = pygame.font.Font(FONT_PATH, 25)
+font_quit = pygame.font.Font(FONT_PATH, 18)
+
+# 최고점수 불러오기
+if os.path.exists("Breakout!/breakout_score.txt"):
+    f = open("Breakout!/breakout_score.txt", "r")
+    f_score = f.read().strip()
+    if f_score == "":
+        high = 0
+    else:
+        high = int(f_score)
+else:
+    high = 0
 
 # 점수(갱신 가능)
 global score
@@ -59,7 +72,7 @@ def reset_game():
     paddle_x = (SCREEN_WIDTH - PADDLE_WIDTH) // 2
     paddle_y = SCREEN_HEIGHT - 30
 
-    stage = random.randint(0,4)
+    stage = random.randint(0,19)
 
     # 벽돌배치
     bricks = [] 
@@ -123,7 +136,153 @@ def reset_game():
                     bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))        
             if (col == 4 or col == 5):
                 for row in range(9):
-                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))                                                
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+    if (stage == 5):
+        for col in range(10):
+            for row in range(col):
+                bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT)) 
+    if (stage == 6):
+        for col in range(10):
+            for row in range(9-col):
+                bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT)) 
+    if (stage == 7):
+        for row in range(0,10,2):
+            for col in range(10):
+                bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))                                      
+    if (stage == 8):
+        for col in [0,2,7,9]:
+            for row in range(10):
+                bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+        for col in range(3,7):
+            for row in [0,9]:
+                bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+    if (stage == 9):
+        for row in range(10):
+            for col in range(10):
+                if (row == 4 or row == 5 or col == 4 or col == 5) and not(4 <= row <= 5 and 4 <= col <= 5):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+                if (1 <= row <= 2 and 1 <= col <= 2) or (7 <= row <= 8 and 7 <= col <= 8) or (1 <= row <= 2 and 7 <= col <= 8) or (7 <= row <= 8 and 1 <= col <= 2):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+    if (stage == 10):
+        for col in range(10):
+            if (col == 0 or col == 3 or col == 6 or col == 9):
+                for row in range(10):
+                    if (row < 4 or row > 5):
+                        bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+            if (col == 1 or col == 2 or col == 7 or col == 8):
+                for row in range(10):
+                    if (row == 0 or row == 3 or row == 6 or row == 9):
+                        bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))        
+            if (col == 4 or col == 5):
+                for row in range(4,6):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))      
+    if (stage == 11):
+        for col in range(1,10,2):
+            for row in range(9):
+                bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+        for col in [0,4,8]:
+            row = 0
+            bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))  
+        for col in [4,8]:
+            row = 8
+            bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT)) 
+    if (stage == 12):
+        for col in [0,1,2,6,7,8]:
+            for row in [0,1,5,6]:
+                bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+        for col in [3,9]:
+            for row in range(11):
+                bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))  
+    if (stage == 13):
+        for col in range(10):
+            if (col == 1 or col == 3 or col == 5 or col == 7):
+                for row in range(6,7):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+            if (col == 0):
+                for row in [5,7]:
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))        
+            if (col == 2 or col == 6):
+                for row in range(4,9):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))        
+            if (col == 4):
+                for row in range(3,10):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))        
+            if (col == 8):
+                for row in range(13):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))    
+            if (col == 9) :
+                for row in range(1,12):
+                    if (row != 4):
+                        bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))    
+    if (stage == 14):
+        for row in range(9):
+            if (row == 1 or row == 7):
+                for col in range(10):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+            if (row == 0 or row == 3 or row == 5 or row == 8):
+                for col in [1,3,6,8]:
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))        
+            if (row == 2 or row == 6):
+                for col in [0,4,5,9]:
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))              
+            if (row == 4):
+                for col in [2,7]:
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))   
+    if (stage == 15):
+        for col in range(10):
+            if (col == 0 or col == 9):
+                for row in range(20):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+            else:
+                for row in range(0,2):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT)) 
+    if (stage == 16):
+        for col in range(10):
+            if (col == 0 or col == 4 or col == 8):
+                for row in range(0,5):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+            if (col == 1 or col == 3 or col == 5 or col == 7 or col == 9):
+                for row in range(1,6):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))        
+            if (col == 2 or col == 6):
+                for row in range(2,7):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))   
+    if (stage == 17):
+        for col in range(10):
+            if (col % 2 == 0):
+                for row in range(0,5):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+            else:
+                for row in range(5,10):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))            
+    if (stage == 18):
+        for col in range(10):
+            if (col == 0 or col == 9):
+                for row in range(1):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+            if (col == 1 or col == 8):
+                for row in range(3):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))        
+            if (col == 2 or col == 7):
+                for row in range(5):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))        
+            if (col == 3 or col == 6):
+                for row in range(7):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))        
+            if (col == 4 or col == 5):
+                for row in range(9):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+    if (stage == 19):
+        for col in range(10):
+            if (col == 1 or col == 8):
+                for row in [0,1,6,7]:
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+            elif (col < 3 or col > 6):
+                for row in range(8):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))
+            else:
+                for row in range(3,5):
+                    bricks.append(pygame.Rect(col * (BRICK_WIDTH + 5) + 5, row * (BRICK_HEIGHT + 5) + 57, BRICK_WIDTH, BRICK_HEIGHT))        
 
     game_over = False
     result_text = ""
@@ -131,7 +290,7 @@ def reset_game():
     global start_time
     start_time = pygame.time.get_ticks()
 
-    global speedup_time, speedup_alpha, show_speedup, speedup, speedup_rect, score_up, gameover_sound, clear_sound
+    global speedup_time, speedup_alpha, show_speedup, speedup, speedup_rect, score_up, gameover_sound, clear_sound, show_quit_text
     score_up = 10   # 기본점수
     speedup_time = 0
     speedup_alpha = 0
@@ -140,6 +299,10 @@ def reset_game():
     speedup_rect = speedup.get_rect(center=(SCREEN_WIDTH // 2, 25))
     gameover_sound = True
     clear_sound = True
+    show_quit_text = False
+
+esc_pressed_time = None     # esc 누른 시간
+ESC_HOLD_DURATION = 3000    # 눌러야 하는 시간 (3초)
 
 # 초기화 실행
 reset_game()
@@ -151,7 +314,7 @@ running = True
 while running:
     screen.fill(BLACK)
 
-    # 이벤트 처리
+    # 키보드 입력
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -163,6 +326,17 @@ while running:
 
         if result_text == "CLEAR!!" and event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
             reset_game()
+
+        # esc 누름
+        if game_over and event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                esc_pressed_time = pygame.time.get_ticks()
+                show_quit_text = True
+        # esc 뗌
+        if game_over and event.type == pygame.KEYUP:
+            if event.key == pygame.K_ESCAPE:
+                esc_pressed_time = None
+                show_quit_text = False
 
     if not game_over:
         # 패들 이동
@@ -252,9 +426,15 @@ while running:
         pygame.draw.circle(screen, RED, (ball_x, ball_y), BALL_RADIUS)
 
     else:
+        # 최고점수 갱신
+        if score > high:
+            high = score
+            f = open("Breakout!/breakout_score.txt", "w")
+            f.write(str(high))
+
         # 결과 메시지 표시
         result = font_main.render(result_text, True, WHITE)
-        rect = result.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 130))
+        rect = result.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 180))
         screen.blit(result, rect)
 
         time = pygame.time.get_ticks()
@@ -263,10 +443,10 @@ while running:
 
         if result_text == "GAME OVER":
             final_text = font_result.render("Final Score", True, (150,150,150))
-            final_rect = final_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 20))
+            final_rect = final_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 40))
             screen.blit(final_text, final_rect)
             restart = font_small.render("Press ENTER to Restart", True, blink)
-            rect2 = restart.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 130))
+            rect2 = restart.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 180))
             screen.blit(restart, rect2)
             if (gameover_sound):
                 pygame.mixer.Sound("Breakout!/breakout_sound/gameover.wav").play()
@@ -274,18 +454,35 @@ while running:
 
         if result_text == "CLEAR!!":
             current_text = font_result.render("Current Score", True, (150,150,150))
-            current_rect = current_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 20))
+            current_rect = current_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 40))
             screen.blit(current_text, current_rect)
             restart = font_small.render("Press ENTER to Continue", True, blink)
-            rect2 = restart.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 130))
+            rect2 = restart.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 180))
             screen.blit(restart, rect2)
             if (clear_sound):
                 pygame.mixer.Sound("Breakout!/breakout_sound/clear.wav").play()
             clear_sound = False
 
         result_score = font_result.render(f"{score}", True, (150,150,150))
-        score_rect = result_score.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30))
+        score_rect = result_score.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 90))
         screen.blit(result_score, score_rect)
+
+        high_text = font_result.render("High Score", True, (200,200,200))
+        high_rect = high_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 80))
+        screen.blit(high_text, high_rect)
+
+        high_score = font_result.render(f"{high}", True, (200,200,200))
+        high_score_rect = high_score.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 30))
+        screen.blit(high_score, high_score_rect)
+
+        if show_quit_text:  # 종료문구 표시
+            quit_text = font_quit.render("quit...", True, (100,100,100))
+            quit_rect = quit_text.get_rect(center=(80, 20))
+            screen.blit(quit_text, quit_rect)
+
+        if esc_pressed_time is not None:    # 게임종료
+            if pygame.time.get_ticks() - esc_pressed_time >= ESC_HOLD_DURATION:
+                running = False
 
     # 화면 업데이트
     pygame.display.flip()
