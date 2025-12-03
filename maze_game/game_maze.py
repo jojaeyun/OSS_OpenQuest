@@ -44,10 +44,12 @@ def find_path(maze, start, end):
                 queue.append((nr,nc))
     return []
 
+
+
 # ---------------- READY & GO 연출 ----------------
 def show_ready_go(screen, font_large, screen_w, screen_h):
     try:
-        ready_sound = pygame.mixer.Sound("maze_game/gamestart.mp3")
+        ready_sound = pygame.mixer.Sound("maze_game/assets/gamestart.mp3")
         ready_sound.play()
     except Exception:
         pass
@@ -77,6 +79,8 @@ def draw_button(screen, rect, text, font, color_bg, color_text):
          rect.centery - text_surface.get_height() // 2)
     )
 
+
+
 # ---------------- 게임 실행 ----------------
 def run_pygame(difficulty=None):
     pygame.init()
@@ -84,17 +88,17 @@ def run_pygame(difficulty=None):
 
     # ---------------- 사운드 로드 ----------------
     try:
-        wall_hit_sound = pygame.mixer.Sound("maze_game/wall_hit.wav")
+        wall_hit_sound = pygame.mixer.Sound("maze_game/assets/wall_hit.wav")
     except Exception:
         wall_hit_sound = None
 
     try:
-        item_pickup_sound = pygame.mixer.Sound("maze_game/item_pickup.mp3")
+        item_pickup_sound = pygame.mixer.Sound("maze_game/assets/item_pickup.mp3")
     except Exception:
         item_pickup_sound = None
 
     try:
-        moving_sound = pygame.mixer.Sound("maze_game/moving.mp3")
+        moving_sound = pygame.mixer.Sound("maze_game/assets/moving.mp3")
         moving_sound.set_volume(0.2)
         moving_channel = pygame.mixer.Channel(5)
     except Exception:
@@ -102,8 +106,8 @@ def run_pygame(difficulty=None):
         moving_channel = None
 
     try:
-        victory_sound = pygame.mixer.Sound("maze_game/victory.mp3")
-        defeat_sound = pygame.mixer.Sound("maze_game/defeat.mp3")
+        victory_sound = pygame.mixer.Sound("maze_game/assets/victory.mp3")
+        defeat_sound = pygame.mixer.Sound("maze_game/assets/defeat.mp3")
     except Exception:
         victory_sound = None
         defeat_sound = None
@@ -121,9 +125,43 @@ def run_pygame(difficulty=None):
     pygame.display.set_caption("아케이드 미로 게임")
     clock = pygame.time.Clock()
 
+    # ---------------- 랭킹 표시 ----------------
+    def draw_ranking(screen, font_small, difficulty="normal"):
+        ranking_file = f"ranking_{difficulty}.txt"
+        try:
+            with open(ranking_file, "r") as f:
+                times = [float(line.strip()) for line in f.readlines()]
+        except FileNotFoundError:
+            times = []
+
+        if times:
+            screen.blit(font_small.render("RANKING:", True, (255,255,255)), (SCREEN_WIDTH//2 - 70, 220))
+            for i, t in enumerate(times):
+                text = font_small.render(f"{i+1}. {t:.2f}s", True, (255,255,0))
+                screen.blit(text, (SCREEN_WIDTH//2 - 50, 250 + i*25))
+
+
+    # ---------------- 랭킹 저장 ----------------
+    def save_ranking(elapsed_time, difficulty="normal", top_n=5):
+        ranking_file = f"ranking_{difficulty}.txt"
+        try:
+            with open(ranking_file, "r") as f:
+                times = [float(line.strip()) for line in f.readlines()]
+        except FileNotFoundError:
+            times = []
+
+        times.append(elapsed_time)
+        times.sort()  # 오름차순: 빠른 시간 먼저
+        times = times[:top_n]  # 상위 N개만
+
+        with open(ranking_file, "w") as f:
+            for t in times:
+                f.write(f"{t:.2f}\n")
+
+
     # ---------------- 이미지 로드 ----------------
     try:
-        player_img = pygame.image.load("maze_game/player.png").convert_alpha()
+        player_img = pygame.image.load("maze_game/assets/player.png").convert_alpha()
     except Exception as e:
         print("플레이어 이미지 로드 실패:", e)
         player_img = None
@@ -131,7 +169,7 @@ def run_pygame(difficulty=None):
     enemy_imgs_all = []
     for i in range(1, 4):
         try:
-            img = pygame.image.load(f"maze_game/enemy{i}.png").convert_alpha()
+            img = pygame.image.load(f"maze_game/assets/enemy{i}.png").convert_alpha()
             enemy_imgs_all.append(img)
         except Exception as e:
             print(f"enemy{i}.png 로드 실패:", e)
@@ -165,7 +203,7 @@ def run_pygame(difficulty=None):
         show_ready_go(screen, font_large, SCREEN_WIDTH, SCREEN_HEIGHT)
 
         try:
-            pygame.mixer.music.load("maze_game/bgm.mp3")
+            pygame.mixer.music.load("maze_game/assets/bgm.mp3")
             pygame.mixer.music.set_volume(0.4)
             pygame.mixer.music.play(-1)
         except Exception as e:
@@ -238,6 +276,8 @@ def run_pygame(difficulty=None):
         disable_duration = 180
         t = 0
 
+
+        start_time = time.time()
         # ---------------- 메인 게임 루프 ----------------
         while running:
             t += 1
@@ -361,6 +401,10 @@ def run_pygame(difficulty=None):
             else:
                 pygame.draw.rect(screen, (0,255,255), (player_x, player_y, TILE_SIZE, TILE_SIZE))
 
+            elapsed = time.time() - start_time
+            time_text = font_small.render(f"TIME: {elapsed:.2f}s", True, (255,255,255))
+            screen.blit(time_text, (SCREEN_WIDTH - 300, 10))
+
             hud = font_small.render(f"ITEMS LEFT: {len(items)}", True, (255,255,255))
             screen.blit(hud, (10,10))
             pygame.display.flip()
@@ -371,12 +415,12 @@ def run_pygame(difficulty=None):
         if moving_channel:
             moving_channel.stop()
 
-        # 승리/패배 사운드
-        if won and victory_sound:
-            pygame.mixer.Channel(6).play(victory_sound)
-        elif not won and defeat_sound:
-            pygame.mixer.Channel(7).play(defeat_sound)
+        # 종료 직전 기록 저장
+        elapsed = time.time() - start_time  # 마지막 시간 계산
+        if won:
+            save_ranking(elapsed, difficulty=difficulty)
 
+        # 승리/패배 사운드
         victory_sound_played = False
         defeat_sound_played = False
         while True:
@@ -385,26 +429,33 @@ def run_pygame(difficulty=None):
             text = font_large.render(msg, True, (50,255,50) if won else (255,80,80))
             screen.blit(text, (SCREEN_WIDTH//2 - text.get_width()//2, 150))
 
-            main_btn = pygame.Rect(SCREEN_WIDTH//2 - 150, 300, 300, 60)
-            retry_btn = pygame.Rect(SCREEN_WIDTH//2 - 150, 380, 300, 60)
-            quit_btn = pygame.Rect(SCREEN_WIDTH//2 - 150, 460, 300, 60)
 
+            ranking_file = f"ranking_{difficulty}.txt"
+            try:
+                with open(ranking_file, "r") as f:
+                    times = [float(line.strip()) for line in f.readlines()]
+            except FileNotFoundError:
+                times = []
+            if times:
+                screen.blit(font_small.render("RANKING:", True, (255,255,255)), (SCREEN_WIDTH - 350, 300))
+                for i, t in enumerate(times):
+                    text_r = font_small.render(f"{i+1}. {t:.2f}s", True, (255,255,0))
+                    screen.blit(text_r, (SCREEN_WIDTH - 350, 330 + i*25))
+
+            # 버튼 표시
+            main_btn = pygame.Rect(50, 300, 300, 60)
+            retry_btn = pygame.Rect(50, 380, 300, 60)
+            quit_btn = pygame.Rect(50, 460, 300, 60)
             draw_button(screen, main_btn, "MAIN", font_small, (50,50,200), (255,255,255))
             draw_button(screen, retry_btn, "TRY AGAIN", font_small, (50,200,50), (255,255,255))
             draw_button(screen, quit_btn, "QUIT", font_small, (200,50,50), (255,255,255))
             pygame.display.flip()
 
-            if won and not victory_sound_played:
-                try:
-                    pygame.mixer.Sound("victory.mp3").play()
-                except Exception:
-                    pass
+            if won and not victory_sound_played and victory_sound:
+                pygame.mixer.Channel(6).play(victory_sound)
                 victory_sound_played = True
-            elif not won and not defeat_sound_played:
-                try:
-                    pygame.mixer.Sound("defeat.mp3").play()
-                except Exception:
-                    pass
+            elif not won and not defeat_sound_played and defeat_sound:
+                pygame.mixer.Channel(7).play(defeat_sound)
                 defeat_sound_played = True
 
             for event in pygame.event.get():
