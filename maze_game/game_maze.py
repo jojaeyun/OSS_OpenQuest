@@ -126,10 +126,11 @@ def run_pygame(difficulty=None):
     clock = pygame.time.Clock()
 
     # ---------------- 랭킹 표시 ----------------
-    def draw_ranking(screen, font_small, ranking_file="ranking.txt"):
+    def draw_ranking(screen, font_small, difficulty="normal"):
+        ranking_file = f"ranking_{difficulty}.txt"
         try:
             with open(ranking_file, "r") as f:
-                    times = [float(line.strip()) for line in f.readlines()]
+                times = [float(line.strip()) for line in f.readlines()]
         except FileNotFoundError:
             times = []
 
@@ -141,7 +142,8 @@ def run_pygame(difficulty=None):
 
 
     # ---------------- 랭킹 저장 ----------------
-    def save_ranking(elapsed_time, ranking_file="ranking.txt", top_n=5):
+    def save_ranking(elapsed_time, difficulty="normal", top_n=5):
+        ranking_file = f"ranking_{difficulty}.txt"
         try:
             with open(ranking_file, "r") as f:
                 times = [float(line.strip()) for line in f.readlines()]
@@ -416,7 +418,7 @@ def run_pygame(difficulty=None):
         # 종료 직전 기록 저장
         elapsed = time.time() - start_time  # 마지막 시간 계산
         if won:
-            save_ranking(elapsed)  # 승리 시 기록 저장
+            save_ranking(elapsed, difficulty=difficulty)
 
         # 승리/패배 사운드
         victory_sound_played = False
@@ -428,8 +430,9 @@ def run_pygame(difficulty=None):
             screen.blit(text, (SCREEN_WIDTH//2 - text.get_width()//2, 150))
 
 
+            ranking_file = f"ranking_{difficulty}.txt"
             try:
-                with open("ranking.txt", "r") as f:
+                with open(ranking_file, "r") as f:
                     times = [float(line.strip()) for line in f.readlines()]
             except FileNotFoundError:
                 times = []
