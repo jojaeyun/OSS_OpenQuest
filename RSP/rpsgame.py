@@ -24,7 +24,7 @@ GREEN = (80, 200, 120)
 YELLOW = (240, 200, 60)
 DARK_GRAY = (40, 40, 40)
 
-FONT_PATH = "./fonts/PressStart2P-Regular.ttf"
+FONT_PATH = os.path.join(BASE_PATH, "..", "fonts", "PressStart2P-Regular.ttf")
 
 font_title = pygame.font.Font(FONT_PATH, 26)
 font_result_big = pygame.font.Font(FONT_PATH, 62)
@@ -32,9 +32,9 @@ font_text = pygame.font.Font(FONT_PATH, 26)
 font_small = pygame.font.Font(FONT_PATH, 18)
 font_tiny = pygame.font.Font(FONT_PATH, 10)
 
-# 이미지 로드 함수
+# 이미지 로드 함수 (assets 폴더 적용)
 def load_image(filename, size=(150, 150), fallback_color=DARK_GRAY):
-    filepath = os.path.join(BASE_PATH, filename)
+    filepath = os.path.join(BASE_PATH, "assets", filename)
     if os.path.exists(filepath):
         img = pygame.image.load(filepath).convert_alpha()
         img = pygame.transform.scale(img, size)
@@ -143,7 +143,6 @@ while running:
                     for i, btn in enumerate(buttons):
                         if btn.is_clicked(event.pos):
 
-                            
                             player_choice = ["Scissors", "Rock", "Paper"][i]
                             computer_choice = random.choice(["Scissors", "Rock", "Paper"])
                             computer_result_text = f"COMPUTER: {computer_choice}"
