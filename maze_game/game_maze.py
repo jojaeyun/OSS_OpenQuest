@@ -238,7 +238,11 @@ def run_pygame(difficulty=None):
         disable_duration = 180
         t = 0
 
+
+        start_time = time.time()
         # ---------------- 메인 게임 루프 ----------------
+    
+
         while running:
             t += 1
             for event in pygame.event.get():
@@ -360,6 +364,10 @@ def run_pygame(difficulty=None):
                 screen.blit(rotated_img, rect.topleft)
             else:
                 pygame.draw.rect(screen, (0,255,255), (player_x, player_y, TILE_SIZE, TILE_SIZE))
+
+            elapsed = time.time() - start_time
+            time_text = font_small.render(f"TIME: {elapsed:.2f}s", True, (255,255,255))
+            screen.blit(time_text, (SCREEN_WIDTH - 250, 10))
 
             hud = font_small.render(f"ITEMS LEFT: {len(items)}", True, (255,255,255))
             screen.blit(hud, (10,10))
