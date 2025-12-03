@@ -13,6 +13,7 @@ Pygame을 이용한 여러 게임을 하나의 플랫폼에서 즐길 수 있도
 - 게임선택창 (게임 선택 시 해당 게임 실행)
 ---
 - breakout! (벽돌 깨기 게임)
+
 하단의 바를 조종하여 공을 튕겨내 모든 벽돌을 제거해야 하는 게임입니다.
 
 - 기능
@@ -24,7 +25,7 @@ Pygame을 이용한 여러 게임을 하나의 플랫폼에서 즐길 수 있도
 
 - 게임 방법
 
-이동: 방향키 (A,D 또는 좌우 방향키)
+이동: 키보드 (A,D 또는 좌우 방향키)
 
 ---
 - hangman (단어 맞추기 게임)
@@ -65,4 +66,5 @@ source venv/bin/activate  # (Windows: venv\Scripts\activate)
 pip install pygame
 
 # 4. 실행
+
 python main.py
