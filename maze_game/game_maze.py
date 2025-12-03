@@ -49,7 +49,7 @@ def find_path(maze, start, end):
 # ---------------- READY & GO 연출 ----------------
 def show_ready_go(screen, font_large, screen_w, screen_h):
     try:
-        ready_sound = pygame.mixer.Sound("maze_game/gamestart.mp3")
+        ready_sound = pygame.mixer.Sound("maze_game/assets/gamestart.mp3")
         ready_sound.play()
     except Exception:
         pass
@@ -88,17 +88,17 @@ def run_pygame(difficulty=None):
 
     # ---------------- 사운드 로드 ----------------
     try:
-        wall_hit_sound = pygame.mixer.Sound("maze_game/wall_hit.wav")
+        wall_hit_sound = pygame.mixer.Sound("maze_game/assets/wall_hit.wav")
     except Exception:
         wall_hit_sound = None
 
     try:
-        item_pickup_sound = pygame.mixer.Sound("maze_game/item_pickup.mp3")
+        item_pickup_sound = pygame.mixer.Sound("maze_game/assets/item_pickup.mp3")
     except Exception:
         item_pickup_sound = None
 
     try:
-        moving_sound = pygame.mixer.Sound("maze_game/moving.mp3")
+        moving_sound = pygame.mixer.Sound("maze_game/assets/moving.mp3")
         moving_sound.set_volume(0.2)
         moving_channel = pygame.mixer.Channel(5)
     except Exception:
@@ -106,8 +106,8 @@ def run_pygame(difficulty=None):
         moving_channel = None
 
     try:
-        victory_sound = pygame.mixer.Sound("maze_game/victory.mp3")
-        defeat_sound = pygame.mixer.Sound("maze_game/defeat.mp3")
+        victory_sound = pygame.mixer.Sound("maze_game/assets/victory.mp3")
+        defeat_sound = pygame.mixer.Sound("maze_game/assets/defeat.mp3")
     except Exception:
         victory_sound = None
         defeat_sound = None
@@ -161,7 +161,7 @@ def run_pygame(difficulty=None):
 
     # ---------------- 이미지 로드 ----------------
     try:
-        player_img = pygame.image.load("maze_game/player.png").convert_alpha()
+        player_img = pygame.image.load("maze_game/assets/player.png").convert_alpha()
     except Exception as e:
         print("플레이어 이미지 로드 실패:", e)
         player_img = None
@@ -169,7 +169,7 @@ def run_pygame(difficulty=None):
     enemy_imgs_all = []
     for i in range(1, 4):
         try:
-            img = pygame.image.load(f"maze_game/enemy{i}.png").convert_alpha()
+            img = pygame.image.load(f"maze_game/assets/enemy{i}.png").convert_alpha()
             enemy_imgs_all.append(img)
         except Exception as e:
             print(f"enemy{i}.png 로드 실패:", e)
@@ -203,7 +203,7 @@ def run_pygame(difficulty=None):
         show_ready_go(screen, font_large, SCREEN_WIDTH, SCREEN_HEIGHT)
 
         try:
-            pygame.mixer.music.load("maze_game/bgm.mp3")
+            pygame.mixer.music.load("maze_game/assets/bgm.mp3")
             pygame.mixer.music.set_volume(0.4)
             pygame.mixer.music.play(-1)
         except Exception as e:
