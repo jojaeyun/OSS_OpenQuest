@@ -99,7 +99,7 @@ def run_pygame(difficulty=None):
 
     try:
         moving_sound = pygame.mixer.Sound("maze_game/assets/moving.mp3")
-        moving_sound.set_volume(0.1)
+        moving_sound.set_volume(0.2)
         moving_channel = pygame.mixer.Channel(5)
     except Exception:
         moving_sound = None
@@ -204,7 +204,7 @@ def run_pygame(difficulty=None):
 
         try:
             pygame.mixer.music.load("maze_game/assets/bgm.mp3")
-            pygame.mixer.music.set_volume(0.3)
+            pygame.mixer.music.set_volume(0.4)
             pygame.mixer.music.play(-1)
         except Exception as e:
             print("BGM 로드 실패:", e)
@@ -262,44 +262,19 @@ def run_pygame(difficulty=None):
                     items.append((r, c))
                     break
 
-        def rect_can_move(x, y, self_enemy=None):
+        def rect_can_move(x, y):
             rect = pygame.Rect(x, y, TILE_SIZE, TILE_SIZE)
-            # 벽 충돌 검사
             for r in range(ROWS):
                 for c in range(COLS):
                     if maze[r][c] == 1:
                         wall_rect = pygame.Rect(c*TILE_SIZE, r*TILE_SIZE, TILE_SIZE, TILE_SIZE)
                         if rect.colliderect(wall_rect):
                             return False
-            # 다른 적과의 충돌 검사
-            for e in enemies:
-                if e["disabled"]:
-                    e["timer"] -= 1
-                    if e["timer"] <= 0:
-                        e["disabled"] = False
-                    continue
-            
-                er, ec = int(e["y"] // TILE_SIZE), int(e["x"] // TILE_SIZE)
-                e["path_timer"] += 1
-                if e["path_timer"] % 30 == 0:
-                    e["path"] = find_path(maze, (er, ec), (player_row, player_col))
-            
-                if e["path"]:
-                    next_r, next_c = e["path"][0]
-                    target_x, target_y = next_c * TILE_SIZE, next_r * TILE_SIZE
-                    dir_x, dir_y = target_x - e["x"], target_y - e["y"]
-                    dist = max(1, math.hypot(dir_x, dir_y))
-                    move_x = enemy_speed * dir_x / dist
-                    move_y = enemy_speed * dir_y / dist
-            
-                    # 다른 적들과의 충돌을 고려
-                    if rect_can_move(e["x"] + move_x, e["y"], self_enemy=e):
-                        e["x"] += move_x
-                    if rect_can_move(e["x"], e["y"] + move_y, self_enemy=e):
-                        e["y"] += move_y
-            
-                    if abs(e["x"] - target_x) < 2 and abs(e["y"] - target_y) < 2:
-                        e["path"].pop(0)
+            return True
+
+        running, won = True, False
+        disable_duration = 180
+        t = 0
 
 
         start_time = time.time()
