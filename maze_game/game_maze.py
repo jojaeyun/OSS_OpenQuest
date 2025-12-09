@@ -99,7 +99,7 @@ def run_pygame(difficulty=None):
 
     try:
         moving_sound = pygame.mixer.Sound("maze_game/assets/moving.mp3")
-        moving_sound.set_volume(0.2)
+        moving_sound.set_volume(0.1)
         moving_channel = pygame.mixer.Channel(5)
     except Exception:
         moving_sound = None
@@ -204,7 +204,7 @@ def run_pygame(difficulty=None):
 
         try:
             pygame.mixer.music.load("maze_game/assets/bgm.mp3")
-            pygame.mixer.music.set_volume(0.4)
+            pygame.mixer.music.set_volume(0.3)
             pygame.mixer.music.play(-1)
         except Exception as e:
             print("BGM 로드 실패:", e)
