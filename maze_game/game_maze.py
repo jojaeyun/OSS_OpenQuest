@@ -303,6 +303,12 @@ def run_pygame(difficulty=None):
 
 
         start_time = time.time()
+
+        running = True
+        t = 0
+        won = False
+        disable_duration = 180
+        
         # ---------------- 메인 게임 루프 ----------------
         while running:
             t += 1
