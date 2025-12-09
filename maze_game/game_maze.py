@@ -44,7 +44,18 @@ def find_path(maze, start, end):
                 queue.append((nr,nc))
     return []
 
-
+# ---------------- 벽 충돌 체크 (수정된 부분: 미로 벽만 체크) ----------------
+def rect_can_move(x, y, TILE_SIZE, ROWS, COLS, maze):
+    """주어진 위치(x, y)에 객체가 미로 벽과 충돌하는지 확인합니다."""
+    rect = pygame.Rect(x, y, TILE_SIZE, TILE_SIZE)
+    for r in range(ROWS):
+        for c in range(COLS):
+            # 오직 벽 (1)과만 충돌 체크
+            if maze[r][c] == 1:
+                wall_rect = pygame.Rect(c*TILE_SIZE, r*TILE_SIZE, TILE_SIZE, TILE_SIZE)
+                if rect.colliderect(wall_rect):
+                    return False
+    return True
 
 # ---------------- READY & GO 연출 ----------------
 def show_ready_go(screen, font_large, screen_w, screen_h):
@@ -78,8 +89,6 @@ def draw_button(screen, rect, text, font, color_bg, color_text):
         (rect.centerx - text_surface.get_width() // 2,
          rect.centery - text_surface.get_height() // 2)
     )
-
-
 
 # ---------------- 게임 실행 ----------------
 def run_pygame(difficulty=None):
@@ -124,22 +133,6 @@ def run_pygame(difficulty=None):
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("아케이드 미로 게임")
     clock = pygame.time.Clock()
-
-    # ---------------- 랭킹 표시 ----------------
-    def draw_ranking(screen, font_small, difficulty="normal"):
-        ranking_file = f"ranking_{difficulty}.txt"
-        try:
-            with open(ranking_file, "r") as f:
-                times = [float(line.strip()) for line in f.readlines()]
-        except FileNotFoundError:
-            times = []
-
-        if times:
-            screen.blit(font_small.render("RANKING:", True, (255,255,255)), (SCREEN_WIDTH//2 - 70, 220))
-            for i, t in enumerate(times):
-                text = font_small.render(f"{i+1}. {t:.2f}s", True, (255,255,0))
-                screen.blit(text, (SCREEN_WIDTH//2 - 50, 250 + i*25))
-
 
     # ---------------- 랭킹 저장 ----------------
     def save_ranking(elapsed_time, difficulty="normal", top_n=5):
@@ -262,27 +255,12 @@ def run_pygame(difficulty=None):
                     items.append((r, c))
                     break
 
-        def rect_can_move(x, y):
-            rect = pygame.Rect(x, y, TILE_SIZE, TILE_SIZE)
-            for r in range(ROWS):
-                for c in range(COLS):
-                    if maze[r][c] == 1:
-                        wall_rect = pygame.Rect(c*TILE_SIZE, r*TILE_SIZE, TILE_SIZE, TILE_SIZE)
-                        if rect.colliderect(wall_rect):
-                            return False
-            return True
-
+        # NOTE: rect_can_move 함수가 최상위로 이동되어 이 정의는 제거됨
+        
         running, won = True, False
         disable_duration = 180
         t = 0
-
-
         start_time = time.time()
-
-        running = True
-        t = 0
-        won = False
-        disable_duration = 180
         
         # ---------------- 메인 게임 루프 ----------------
         while running:
@@ -318,12 +296,14 @@ def run_pygame(difficulty=None):
 
             new_x, new_y = player_x + player_vx, player_y + player_vy
 
-            if rect_can_move(new_x, player_y):
+            # 충돌 체크 함수 호출 시 인자 추가 (수정)
+            if rect_can_move(new_x, player_y, TILE_SIZE, ROWS, COLS, maze):
                 player_x = new_x
             else:
                 player_vx = 0
                 if wall_hit_sound: wall_hit_sound.play()
-            if rect_can_move(player_x, new_y):
+            # 충돌 체크 함수 호출 시 인자 추가 (수정)
+            if rect_can_move(player_x, new_y, TILE_SIZE, ROWS, COLS, maze):
                 player_y = new_y
             else:
                 player_vy = 0
@@ -364,11 +344,16 @@ def run_pygame(difficulty=None):
                     dist = max(1, math.hypot(dir_x, dir_y))
                     move_x = enemy_speed * dir_x / dist
                     move_y = enemy_speed * dir_y / dist
-                    if rect_can_move(e["x"] + move_x, e["y"]):
+                    
+                    # 충돌 체크 함수 호출 시 인자 추가 (수정)
+                    if rect_can_move(e["x"] + move_x, e["y"], TILE_SIZE, ROWS, COLS, maze):
                         e["x"] += move_x
-                    if rect_can_move(e["x"], e["y"] + move_y):
+                    # 충돌 체크 함수 호출 시 인자 추가 (수정)
+                    if rect_can_move(e["x"], e["y"] + move_y, TILE_SIZE, ROWS, COLS, maze):
                         e["y"] += move_y
-                    if abs(e["x"] - target_x) < 2 and abs(e["y"] - target_y) < 2:
+                        
+                    # 겹침으로 인한 멈춤 현상 완화를 위해 허용 범위 확대 (2 -> 3으로 수정)
+                    if abs(e["x"] - target_x) < 3 and abs(e["y"] - target_y) < 3:
                         e["path"].pop(0)
 
             if (player_row, player_col) == (exit_row, exit_col):
